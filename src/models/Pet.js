@@ -1,26 +1,32 @@
-// src/models/Pet.js
 const mongoose = require('mongoose');
 
 const VaccinationSchema = new mongoose.Schema({
   name: String,
   date: Date
-});
+}, { _id: false }); // không cần _id riêng cho mỗi vaccine
 
 const PetSchema = new mongoose.Schema({
-  qrCodeUrl: String,      // link tới form edit
+  qrCodeUrl: {
+    type: String,
+    required: true
+  },
   info: {
-    name: String,
-    species: String,
-    age: Number,
-    // … các trường pet khác
+    name:    { type: String, default: '' },
+    species: { type: String, default: '' },
+    age:     { type: Number, default: 0 }
   },
   owner: {
-    name: String,
-    phone: String,
-    // … thông tin user chỉnh sửa
+    name:  { type: String, default: '' },
+    phone: { type: String, default: '' }
   },
-  vaccinations: [VaccinationSchema],
-  createdAt: { type: Date, default: Date.now }
+  vaccinations: {
+    type: [VaccinationSchema],
+    default: []
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 module.exports = mongoose.model('Pet', PetSchema);
