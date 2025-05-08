@@ -32,3 +32,34 @@ exports.getAllPets = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+// Hàm mới: tạo hàng loạt pets + QR
+exports.createBulkPets = async (req, res) => {
+  const { quantity } = req.body;
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    return res.status(400).json({ error: 'quantity phải là số nguyên >= 1' });
+  }
+
+  try {
+    const pets = [];
+    for (let i = 0; i < quantity; i++) {
+      // Tạo document rỗng trước
+      let pet = new Pet();
+      await pet.save({ validateBeforeSave: false });
+
+      // Sinh URL edit + QR
+      const editUrl   = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+      const qrDataUri = await generateQRCode(editUrl);
+
+      // Cập nhật qrCodeUrl
+      pet.qrCodeUrl = qrDataUri;
+      await pet.save();
+
+      pets.push(pet);
+    }
+    return res.status(201).json(pets);
+  } catch (err) {
+    console.error('Error in createBulkPets:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
