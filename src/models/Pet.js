@@ -1,3 +1,4 @@
+// src/models/Pet.js
 const mongoose = require('mongoose');
 
 const VaccinationSchema = new mongoose.Schema({
@@ -6,9 +7,8 @@ const VaccinationSchema = new mongoose.Schema({
 }, { _id: false });
 
 const PetSchema = new mongoose.Schema({
-  qrCodeUrl: { type: String, required: true },
-  // Tham chiếu tới file trong GridFS (fs.files)
-  avatarFileId: { type: mongoose.Schema.Types.ObjectId, default: null },
+  qrCodeUrl:     { type: String, required: true },
+  avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
   info: {
     name:    { type: String, default: '' },
     species: { type: String, default: '' },
@@ -18,8 +18,9 @@ const PetSchema = new mongoose.Schema({
     name:  { type: String, default: '' },
     phone: { type: String, default: '' }
   },
-  vaccinations: { type: [VaccinationSchema], default: [] },
-  createdAt:    { type: Date, default: Date.now }
+  vaccinations: { type: [VaccinationSchema], default: [] }
+}, {
+  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });
 
 module.exports = mongoose.model('Pet', PetSchema);

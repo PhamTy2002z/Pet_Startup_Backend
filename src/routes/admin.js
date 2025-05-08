@@ -1,6 +1,7 @@
 // src/routes/admin.js
 const express = require('express');
 const router  = express.Router();
+const authAdmin = require('../middleware/authAdmin');
 const {
   createPet,
   getAllPets,
@@ -8,6 +9,9 @@ const {
 } = require('../controllers/adminController');
 const { uploadAvatar } = require('../controllers/petImageController');
 
+
+// Trước hết tất cả đều phải auth
+router.use(authAdmin);
 // Tạo mới pet + QR
 router.post('/pet', createPet);
 
