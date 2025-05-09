@@ -33,11 +33,34 @@ app.use('/api', commonRoutes);
 app.use('/api/admin', require('./routes/admin'));
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../dist')));
+const distPath = path.join(__dirname, '../dist');
+console.log('Looking for static files in:', distPath);
+
+// Check if dist directory exists
+const fs = require('fs');
+if (!fs.existsSync(distPath)) {
+  console.warn('Warning: dist directory not found. Make sure to build the frontend first.');
+}
+
+app.use(express.static(distPath));
 
 // Handle frontend routes
-app.get(['/', '/edit/:id'], (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+app.get(['/', '/edit/:id'], (req, res, next) => {
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    next(new Error('Frontend build not found. Please build the frontend first.'));
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: err.message || 'Something went wrong!',
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // Start the reminder scheduler
