@@ -12,7 +12,7 @@ const PetSchema = new mongoose.Schema({
   info: {
     name:    { type: String, default: '' },
     species: { type: String, default: '' },
-    age:     { type: Number, default: 0 }
+    birthDate: { type: Date, default: null }
   },
   owner: {
     name:  { type: String, default: '' },

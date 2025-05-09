@@ -8,12 +8,40 @@ exports.getPetById = async (req, res) => {
 };
 
 exports.updatePet = async (req, res) => {
-  const { info, owner, vaccinations } = req.body;
-  const pet = await Pet.findByIdAndUpdate(
-    req.params.id,
-    { info, owner, vaccinations },
-    { new: true }
-  );
-  if (!pet) return res.sendStatus(404);
-  res.json(pet);
+  try {
+    const { info, owner, vaccinations } = req.body;
+    
+    // Ensure birthDate is properly handled if it exists in the info object
+    if (info && info.birthDate) {
+      info.birthDate = new Date(info.birthDate);
+    }
+
+    const updateData = {
+      info: info || {},
+      owner: owner || {},
+      vaccinations: vaccinations || []
+    };
+
+    const pet = await Pet.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { 
+        new: true,
+        runValidators: true,
+        context: 'query'
+      }
+    );
+
+    if (!pet) {
+      return res.status(404).json({ message: 'Pet not found' });
+    }
+
+    res.json(pet);
+  } catch (error) {
+    console.error('Error updating pet:', error);
+    res.status(500).json({ 
+      message: 'Error updating pet',
+      error: error.message 
+    });
+  }
 };
