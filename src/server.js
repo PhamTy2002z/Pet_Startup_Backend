@@ -6,6 +6,13 @@ const bodyParser = require('body-parser');
 const commonRoutes = require('./routes/common');
 const { startReminderJob } = require('./utils/scheduler'); // Import cron job scheduler
 
+// Verify environment variables
+console.log('Environment check:', {
+  BASE_URL: process.env.BASE_URL,
+  NODE_ENV: process.env.NODE_ENV,
+  MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not set'
+});
+
 const app = express();
 
 // Connect MongoDB

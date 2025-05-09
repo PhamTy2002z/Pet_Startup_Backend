@@ -4,18 +4,25 @@ const { generateQRCode } = require('../utils/qr');
 
 exports.createPet = async (req, res) => {
   try {
+    console.log('Creating new pet...');
     // 1) Tạo document mới, bỏ qua validation lần đầu để không lỗi required qrCodeUrl
     const pet = new Pet();
     await pet.save({ validateBeforeSave: false });
+    console.log('Initial pet document created with ID:', pet._id);
 
     // 2) Sinh URL edit + QR
     const editUrl = `${process.env.BASE_URL}/user/edit/${pet._id}`;
-    console.log('Generating QR code for URL:', editUrl); // Debug log
-    const qrDataUri = await generateQRCode(editUrl);  // Tạo QR từ URL chỉnh sửa pet
+    console.log('Environment variables:', {
+      BASE_URL: process.env.BASE_URL,
+      NODE_ENV: process.env.NODE_ENV
+    });
+    console.log('Generating QR code for URL:', editUrl);
+    const qrDataUri = await generateQRCode(editUrl);
 
     // 3) Cập nhật lại qrCodeUrl chính xác (lần này validation sẽ pass)
     pet.qrCodeUrl = qrDataUri;
     await pet.save();
+    console.log('Pet document updated with QR code');
 
     return res.status(201).json(pet);
   } catch (err) {
