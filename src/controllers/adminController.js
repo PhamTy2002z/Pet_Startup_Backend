@@ -2,6 +2,16 @@
 const Pet = require('../models/Pet');
 const { generateQRCode } = require('../utils/qr');
 
+// Helper function to validate and get base URL
+function getBaseUrl() {
+  const baseUrl = process.env.BASE_URL;
+  if (!baseUrl) {
+    throw new Error('BASE_URL environment variable is not set');
+  }
+  // Remove trailing slash if exists
+  return baseUrl.replace(/\/$/, '');
+}
+
 exports.createPet = async (req, res) => {
   try {
     console.log('Creating new pet...');
@@ -11,9 +21,10 @@ exports.createPet = async (req, res) => {
     console.log('Initial pet document created with ID:', pet._id);
 
     // 2) Sinh URL edit + QR
-    const editUrl = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+    const baseUrl = getBaseUrl();
+    const editUrl = `${baseUrl}/user/edit/${pet._id}`;
     console.log('Environment variables:', {
-      BASE_URL: process.env.BASE_URL,
+      BASE_URL: baseUrl,
       NODE_ENV: process.env.NODE_ENV
     });
     console.log('Generating QR code for URL:', editUrl);
@@ -49,6 +60,7 @@ exports.createBulkPets = async (req, res) => {
   }
 
   try {
+    const baseUrl = getBaseUrl();
     const pets = [];
     for (let i = 0; i < quantity; i++) {
       // Tạo document rỗng trước
@@ -56,7 +68,7 @@ exports.createBulkPets = async (req, res) => {
       await pet.save({ validateBeforeSave: false });
 
       // Sinh URL edit + QR
-      const editUrl = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+      const editUrl = `${baseUrl}/user/edit/${pet._id}`;
       console.log('Generating QR code for URL:', editUrl); // Debug log
       const qrDataUri = await generateQRCode(editUrl);
 
