@@ -8,20 +8,10 @@ const { startReminderJob } = require('./utils/scheduler'); // Import cron job sc
 
 const app = express();
 
-// Cấu hình CORS linh động với biến môi trường
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL frontend cho local, hoặc được lấy từ biến môi trường khi deploy
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
-app.use(bodyParser.json());
-
 // Connect MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
+  useUnifiedTopology: true
 });
 
 const conn = mongoose.connection;
@@ -32,6 +22,9 @@ conn.once('open', () => {
     bucketName: 'avatars'
   });
 });
+
+app.use(cors());
+app.use(bodyParser.json());
 
 // Public routes
 app.use('/api/auth', require('./routes/auth'));      // login admin
