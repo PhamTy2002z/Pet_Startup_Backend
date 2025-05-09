@@ -23,6 +23,10 @@ const PetSchema = new mongoose.Schema({
     phone: { type: String, default: '' },
     email: { type: String, default: '', lowercase: true, trim: true }
   },
+  allergicInfo: { // Thay đổi từ 'allergicPerson' sang 'allergicInfo'
+    substances: { type: [String], default: [] }, // List các chất gây dị ứng (ví dụ: lông mèo, thức ăn, v.v.)
+    note: { type: String, default: '' } // Ghi chú về dị ứng
+  },
   vaccinations: { type: [VaccinationSchema], default: [] },
   reExaminations: { type: [ReExaminationSchema], default: [] }
 }, {

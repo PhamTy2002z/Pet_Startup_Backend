@@ -1,10 +1,10 @@
-// src/server.js
 require('dotenv').config();
 const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
 const bodyParser = require('body-parser');
 const commonRoutes = require('./routes/common');
+const { startReminderJob } = require('./utils/scheduler'); // Import cron job scheduler
 
 const app = express();
 
@@ -46,5 +46,10 @@ app.get('/api/admin/avatar/:id', (req, res) => {
   }
 });
 
+// Start the reminder scheduler
+startReminderJob();  // Ensure the cron job is started
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});

@@ -15,7 +15,7 @@ exports.getPetById = async (req, res) => {
 // Cập nhật thông tin Pet (info, owner, vaccinations, revisitDate)
 exports.updatePet = async (req, res) => {
   try {
-    const { info = {}, owner = {}, vaccinations = [], reExaminations = [] } = req.body;
+    const { info = {}, owner = {}, vaccinations = [], reExaminations = [], allergicInfo = {} } = req.body;
 
     // Parse vaccination dates
     const parsedVaccinations = vaccinations.map(v => ({
@@ -38,7 +38,8 @@ exports.updatePet = async (req, res) => {
       info,
       owner,
       vaccinations: parsedVaccinations,
-      reExaminations: parsedReExaminations
+      reExaminations: parsedReExaminations,
+      allergicInfo
     };
 
     const pet = await Pet.findByIdAndUpdate(
@@ -91,6 +92,38 @@ exports.updatePetOwnerEmail = async (req, res) => {
     console.error('Error updating owner email:', error);
     res.status(500).json({
       message: 'Error updating owner email',
+      error: error.message
+    });
+  }
+};
+
+// Cập nhật thông tin dị ứng của pet
+exports.updateAllergicInfo = async (req, res) => {
+  try {
+    const { substances, note } = req.body;
+
+    // Kiểm tra xem pet có tồn tại không
+    const pet = await Pet.findById(req.params.id);
+    if (!pet) {
+      return res.status(404).json({ message: 'Pet not found' });
+    }
+
+    // Cập nhật thông tin dị ứng cho pet
+    pet.allergicInfo = {
+      substances: substances || [],
+      note: note || ''
+    };
+
+    await pet.save();
+
+    res.json({
+      message: 'Allergic information updated successfully',
+      pet
+    });
+  } catch (error) {
+    console.error('Error updating allergic information:', error);
+    res.status(500).json({
+      message: 'Error updating allergic information',
       error: error.message
     });
   }
