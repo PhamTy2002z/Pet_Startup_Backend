@@ -9,9 +9,8 @@ exports.createPet = async (req, res) => {
     await pet.save({ validateBeforeSave: false });
 
     // 2) Sinh URL edit + QR
-    // Dùng BASE_URL từ biến môi trường
     const editUrl   = `${process.env.BASE_URL}/user/edit/${pet._id}`;
-    const qrDataUri = await generateQRCode(editUrl);
+    const qrDataUri = await generateQRCode(editUrl);  // Tạo QR từ URL chỉnh sửa pet
 
     // 3) Cập nhật lại qrCodeUrl chính xác (lần này validation sẽ pass)
     pet.qrCodeUrl = qrDataUri;
