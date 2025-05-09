@@ -1,4 +1,3 @@
-// src/models/Pet.js
 const mongoose = require('mongoose');
 
 const VaccinationSchema = new mongoose.Schema({
@@ -16,9 +15,11 @@ const PetSchema = new mongoose.Schema({
   },
   owner: {
     name:  { type: String, default: '' },
-    phone: { type: String, default: '' }
+    phone: { type: String, default: '' },
+    email: { type: String, default: '', unique: true, lowercase: true, trim: true } // Added email field
   },
-  vaccinations: { type: [VaccinationSchema], default: [] }
+  vaccinations: { type: [VaccinationSchema], default: [] },
+  revisitDate: { type: Date, default: null } // Added revisitDate field
 }, {
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });
