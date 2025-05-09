@@ -1,7 +1,7 @@
 require('dotenv').config();
-const express  = require('express');
+const express = require('express');
 const mongoose = require('mongoose');
-const cors     = require('cors');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const commonRoutes = require('./routes/common');
 const { startReminderJob } = require('./utils/scheduler'); // Import cron job scheduler
@@ -13,6 +13,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+
 const conn = mongoose.connection;
 conn.once('open', () => {
   console.log('MongoDB connected');
