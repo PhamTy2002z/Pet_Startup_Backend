@@ -21,7 +21,7 @@ const PetSchema = new mongoose.Schema({
   owner: {
     name:  { type: String, default: '' },
     phone: { type: String, default: '' },
-    email: { type: String, default: '', unique: true, lowercase: true, trim: true }
+    email: { type: String, default: '', lowercase: true, trim: true }
   },
   vaccinations: { type: [VaccinationSchema], default: [] },
   reExaminations: { type: [ReExaminationSchema], default: [] }
@@ -29,4 +29,16 @@ const PetSchema = new mongoose.Schema({
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });
 
-module.exports = mongoose.model('Pet', PetSchema);
+// Drop the unique index on owner.email if it exists
+PetSchema.index({ 'owner.email': 1 }, { unique: false });
+
+const Pet = mongoose.model('Pet', PetSchema);
+
+// Drop the existing unique index
+Pet.collection.dropIndex('owner.email_1').catch(err => {
+  if (err.code !== 26) { // Ignore error if index doesn't exist
+    console.error('Error dropping index:', err);
+  }
+});
+
+module.exports = Pet;
