@@ -1,4 +1,5 @@
 // src/controllers/petImageController.js
+const mongoose = require('mongoose');
 const Pet = require('../models/Pet');
 const multer = require('multer');
 
@@ -47,3 +48,21 @@ exports.uploadAvatar = [
     }
   }
 ];
+
+exports.getAvatar = (req, res) => {
+  try {
+    const fileId = new mongoose.Types.ObjectId(req.params.id);
+    const bucket = req.app.locals.gfsBucket;
+
+    const downloadStream = bucket.openDownloadStream(fileId);
+    downloadStream.on('error', () => {
+      return res.sendStatus(404);
+    });
+    // Đặt Content-Type nếu bạn muốn
+    // res.set('Content-Type', 'image/jpeg');
+    downloadStream.pipe(res);
+  } catch (err) {
+    console.error('Error streaming avatar:', err);
+    res.sendStatus(400);
+  }
+};

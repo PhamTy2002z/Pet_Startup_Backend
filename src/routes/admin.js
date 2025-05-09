@@ -24,4 +24,5 @@ router.get('/pets', getAllPets);
 // Upload avatar
 router.post('/pet/:id/avatar', uploadAvatar);
 
+
 module.exports = router;

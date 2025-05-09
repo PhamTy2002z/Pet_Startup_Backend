@@ -2,17 +2,17 @@
 const mongoose = require('mongoose');
 
 const VaccinationSchema = new mongoose.Schema({
-  name: String,
-  date: Date
+  name: { type: String, required: true },
+  date: { type: Date, required: true }
 }, { _id: false });
 
 const PetSchema = new mongoose.Schema({
   qrCodeUrl:     { type: String, required: true },
   avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
   info: {
-    name:    { type: String, default: '' },
-    species: { type: String, default: '' },
-    birthDate: { type: Date, default: null }
+    name:      { type: String, default: '' },
+    species:   { type: String, default: '' },
+    birthDate: { type: Date,   default: null }
   },
   owner: {
     name:  { type: String, default: '' },

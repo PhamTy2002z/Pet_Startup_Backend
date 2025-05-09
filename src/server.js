@@ -4,6 +4,7 @@ const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
 const bodyParser = require('body-parser');
+const commonRoutes = require('./routes/common');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(bodyParser.json());
 // Public routes
 app.use('/api/auth', require('./routes/auth'));      // login admin
 app.use('/api/user', require('./routes/user'));      // user-edit form endpoints
+app.use('/api', commonRoutes);
 
 // Protected admin routes (middleware applied in routes/admin.js)
 app.use('/api/admin', require('./routes/admin'));
