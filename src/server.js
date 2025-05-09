@@ -30,7 +30,12 @@ conn.once('open', () => {
   });
 });
 
-app.use(cors());
+// CORS middleware
+app.use(cors({
+  origin: 'https://pet-startup-frontend.onrender.com',  // Allow frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(bodyParser.json());
 
 // Public routes
