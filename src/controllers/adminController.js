@@ -9,7 +9,8 @@ exports.createPet = async (req, res) => {
     await pet.save({ validateBeforeSave: false });
 
     // 2) Sinh URL edit + QR
-    const editUrl   = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+    const editUrl = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+    console.log('Generating QR code for URL:', editUrl); // Debug log
     const qrDataUri = await generateQRCode(editUrl);  // Tạo QR từ URL chỉnh sửa pet
 
     // 3) Cập nhật lại qrCodeUrl chính xác (lần này validation sẽ pass)
@@ -48,7 +49,8 @@ exports.createBulkPets = async (req, res) => {
       await pet.save({ validateBeforeSave: false });
 
       // Sinh URL edit + QR
-      const editUrl   = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+      const editUrl = `${process.env.BASE_URL}/user/edit/${pet._id}`;
+      console.log('Generating QR code for URL:', editUrl); // Debug log
       const qrDataUri = await generateQRCode(editUrl);
 
       // Cập nhật qrCodeUrl
