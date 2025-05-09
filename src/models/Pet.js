@@ -5,6 +5,11 @@ const VaccinationSchema = new mongoose.Schema({
   date: { type: Date, required: true }
 }, { _id: false });
 
+const ReExaminationSchema = new mongoose.Schema({
+  date: { type: Date, required: true },
+  note: { type: String, default: '' }
+}, { _id: false });
+
 const PetSchema = new mongoose.Schema({
   qrCodeUrl:     { type: String, required: true },
   avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
@@ -16,10 +21,10 @@ const PetSchema = new mongoose.Schema({
   owner: {
     name:  { type: String, default: '' },
     phone: { type: String, default: '' },
-    email: { type: String, default: '', unique: true, lowercase: true, trim: true } // Added email field
+    email: { type: String, default: '', unique: true, lowercase: true, trim: true }
   },
   vaccinations: { type: [VaccinationSchema], default: [] },
-  revisitDate: { type: Date, default: null } // Added revisitDate field
+  reExaminations: { type: [ReExaminationSchema], default: [] }
 }, {
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });

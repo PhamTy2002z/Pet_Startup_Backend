@@ -15,29 +15,30 @@ exports.getPetById = async (req, res) => {
 // Cập nhật thông tin Pet (info, owner, vaccinations, revisitDate)
 exports.updatePet = async (req, res) => {
   try {
-    const { info = {}, owner = {}, vaccinations = [], revisitDate = null } = req.body;
+    const { info = {}, owner = {}, vaccinations = [], reExaminations = [] } = req.body;
 
-    // Chuyển chuỗi ngày tháng thành Date object
+    // Parse vaccination dates
     const parsedVaccinations = vaccinations.map(v => ({
       name: v.name,
       date: v.date ? new Date(v.date) : null
     })).filter(v => v.name && v.date);
 
-    // Nếu có birthDate, parse thành Date
+    // Parse re-examination dates
+    const parsedReExaminations = reExaminations.map(r => ({
+      date: r.date ? new Date(r.date) : null,
+      note: r.note || ''
+    })).filter(r => r.date);
+
+    // If there's birthDate, parse it
     if (info.birthDate) {
       info.birthDate = new Date(info.birthDate);
-    }
-
-    // Nếu có revisitDate, parse thành Date
-    if (revisitDate) {
-      revisitDate = new Date(revisitDate);
     }
 
     const updateData = {
       info,
       owner,
       vaccinations: parsedVaccinations,
-      revisitDate: revisitDate || null // Update revisitDate if provided
+      reExaminations: parsedReExaminations
     };
 
     const pet = await Pet.findByIdAndUpdate(
