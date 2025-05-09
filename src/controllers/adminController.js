@@ -22,7 +22,7 @@ exports.createPet = async (req, res) => {
 
     // 2) Sinh URL edit + QR
     const baseUrl = getBaseUrl();
-    const editUrl = `${baseUrl}/user/edit/${pet._id}`;
+    const editUrl = `${baseUrl}/edit/${pet._id}`;
     console.log('Environment variables:', {
       BASE_URL: baseUrl,
       NODE_ENV: process.env.NODE_ENV
@@ -68,7 +68,7 @@ exports.createBulkPets = async (req, res) => {
       await pet.save({ validateBeforeSave: false });
 
       // Sinh URL edit + QR
-      const editUrl = `${baseUrl}/user/edit/${pet._id}`;
+      const editUrl = `${baseUrl}/edit/${pet._id}`;
       console.log('Generating QR code for URL:', editUrl); // Debug log
       const qrDataUri = await generateQRCode(editUrl);
 
