@@ -2,8 +2,10 @@ const Pet = require('../models/Pet');
 
 // Lấy thông tin Pet theo ID
 exports.getPetById = async (req, res) => {
+  console.log('getPetById called with ID:', req.params.id);
   try {
     const pet = await Pet.findById(req.params.id);
+    console.log('Pet found:', pet ? 'Yes' : 'No');
     if (!pet) return res.sendStatus(404);
     res.json(pet);
   } catch (err) {

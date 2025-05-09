@@ -4,6 +4,12 @@ const { getPetById, updatePet, updatePetOwnerEmail, updateAllergicInfo  } = requ
 const { uploadAvatar } = require('../controllers/petImageController');
 const { sendReminderEmail, testEmailConfig } = require('../utils/mail'); // Import hàm gửi email
 
+// Debug middleware
+router.use((req, res, next) => {
+  console.log('User route accessed:', req.method, req.originalUrl);
+  next();
+});
+
 // Lấy pet để hiển thị form
 router.get('/pet/:id', getPetById);
 
