@@ -27,7 +27,7 @@ exports.createPet = async (req, res) => {
 
     // 2) Sinh URL edit + QR
     const baseUrl = getBaseUrl();  // Sử dụng getBaseUrl để lấy base URL chính xác
-    const editUrl = `${baseUrl}/edit/${pet._id}`;  // URL đến trang chỉnh sửa pet
+    const editUrl = `${baseUrl}/user/edit/${pet._id}`;  // Đảm bảo URL đến trang chỉnh sửa pet có prefix '/user'
     console.log('Environment variables:', {
       BASE_URL: baseUrl,
       NODE_ENV: process.env.NODE_ENV
@@ -73,7 +73,7 @@ exports.createBulkPets = async (req, res) => {
       await pet.save({ validateBeforeSave: false });
 
       // Sinh URL edit + QR
-      const editUrl = `${baseUrl}/edit/${pet._id}`;
+      const editUrl = `${baseUrl}/user/edit/${pet._id}`;  // Thêm '/user' vào URL
       console.log('Generating QR code for URL:', editUrl); // Debug log
       const qrDataUri = await generateQRCode(editUrl);
 
