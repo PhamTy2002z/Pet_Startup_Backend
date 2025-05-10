@@ -5,7 +5,8 @@ const authAdmin = require('../middleware/authAdmin');
 const {
   createPet,
   getAllPets,
-  createBulkPets
+  createBulkPets,
+  searchPets
 } = require('../controllers/adminController');
 const { uploadAvatar } = require('../controllers/petImageController');
 
@@ -20,6 +21,9 @@ router.post('/pets/bulk', createBulkPets);
 
 // Lấy danh sách pet
 router.get('/pets', getAllPets);
+
+// Search pets with filters
+router.get('/pets/search', searchPets);
 
 // Upload avatar
 router.post('/pet/:id/avatar', uploadAvatar);

@@ -1,6 +1,7 @@
 // src/controllers/adminController.js
 const Pet = require('../models/Pet');
 const { generateQRCode } = require('../utils/qr');
+const mongoose = require('mongoose');
 
 // Helper function to validate and get base URL
 function getBaseUrl() {
@@ -86,6 +87,131 @@ exports.createBulkPets = async (req, res) => {
     return res.status(201).json(pets);
   } catch (err) {
     console.error('Error in createBulkPets:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+exports.searchPets = async (req, res) => {
+  try {
+    const {
+      id,
+      petName,
+      ownerName,
+      phone,
+      createdAtStart,
+      createdAtEnd,
+      updatedAtStart,
+      updatedAtEnd,
+      sortBy,
+      sortOrder = 'asc'
+    } = req.query;
+
+    // Build query object
+    const query = {};
+
+    // Search by ID if provided
+    if (id) {
+      try {
+        query._id = new mongoose.Types.ObjectId(id);
+      } catch (err) {
+        return res.status(400).json({ error: 'Invalid ID format' });
+      }
+    }
+
+    // Search by pet name
+    if (petName) {
+      query['info.name'] = { $regex: petName, $options: 'i' };
+    }
+
+    // Search by owner name
+    if (ownerName) {
+      query['owner.name'] = { $regex: ownerName, $options: 'i' };
+    }
+
+    // Search by phone
+    if (phone) {
+      query['owner.phone'] = { $regex: phone, $options: 'i' };
+    }
+
+    // Date range filters
+    if (createdAtStart || createdAtEnd) {
+      query.createdAt = {};
+      if (createdAtStart) {
+        query.createdAt.$gte = new Date(createdAtStart);
+      }
+      if (createdAtEnd) {
+        query.createdAt.$lte = new Date(createdAtEnd);
+      }
+    }
+
+    if (updatedAtStart || updatedAtEnd) {
+      query.updatedAt = {};
+      if (updatedAtStart) {
+        query.updatedAt.$gte = new Date(updatedAtStart);
+      }
+      if (updatedAtEnd) {
+        query.updatedAt.$lte = new Date(updatedAtEnd);
+      }
+    }
+
+    // Build sort object based on sortBy parameter
+    let sort = {};
+    const order = sortOrder.toLowerCase() === 'desc' ? -1 : 1;
+
+    switch (sortBy) {
+      case 'petName':
+        // Sort by pet name, then by creation date for stability
+        sort = {
+          'info.name': order,
+          'createdAt': -1
+        };
+        break;
+      
+      case 'ownerName':
+        // Sort by owner name, then by pet name for multi-level sort
+        sort = {
+          'owner.name': order,
+          'info.name': order
+        };
+        break;
+      
+      case 'lastUpdated':
+        // Sort by last updated date, then by creation date for stability
+        sort = {
+          'updatedAt': -1,
+          'createdAt': -1
+        };
+        break;
+      
+      default:
+        // Default sort by creation date (newest first)
+        sort = { 'createdAt': -1 };
+    }
+
+    // Execute search with sorting
+    const pets = await Pet.find(query).sort(sort);
+
+    // Calculate 24 hours ago timestamp
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Add recentlyUpdated field to each pet
+    const petsWithRecentFlag = pets.map(pet => {
+      const petObj = pet.toObject();
+      petObj.recentlyUpdated = pet.updatedAt >= twentyFourHoursAgo;
+      return petObj;
+    });
+
+    return res.json({
+      count: pets.length,
+      pets: petsWithRecentFlag,
+      sort: {
+        by: sortBy || 'createdAt',
+        order: sortOrder
+      }
+    });
+
+  } catch (err) {
+    console.error('Error in searchPets:', err);
     return res.status(500).json({ error: err.message });
   }
 };
