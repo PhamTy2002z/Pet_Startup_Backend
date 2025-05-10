@@ -8,6 +8,12 @@ function getBaseUrl() {
   if (!baseUrl) {
     throw new Error('BASE_URL environment variable is not set');
   }
+
+  // Kiểm tra và thêm giao thức https:// nếu thiếu
+  if (!/^https?:\/\//i.test(baseUrl)) {
+    return `https://${baseUrl}`;  // Mặc định dùng https nếu không có giao thức
+  }
+
   return baseUrl.replace(/\/$/, '');  // Remove trailing slash if exists
 }
 
