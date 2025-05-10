@@ -6,7 +6,8 @@ const {
   createPet,
   getAllPets,
   createBulkPets,
-  searchPets
+  searchPets,
+  updatePetStatus
 } = require('../controllers/adminController');
 const { uploadAvatar } = require('../controllers/petImageController');
 
@@ -24,6 +25,9 @@ router.get('/pets', getAllPets);
 
 // Search pets with filters
 router.get('/pets/search', searchPets);
+
+// Update pet status
+router.patch('/pet/:id/status', updatePetStatus);
 
 // Upload avatar
 router.post('/pet/:id/avatar', uploadAvatar);

@@ -103,7 +103,8 @@ exports.searchPets = async (req, res) => {
       updatedAtStart,
       updatedAtEnd,
       sortBy,
-      sortOrder = 'asc'
+      sortOrder = 'asc',
+      status
     } = req.query;
 
     // Build query object
@@ -131,6 +132,11 @@ exports.searchPets = async (req, res) => {
     // Search by phone
     if (phone) {
       query['owner.phone'] = { $regex: phone, $options: 'i' };
+    }
+
+    // Filter by status
+    if (status && ['unused', 'active'].includes(status)) {
+      query.status = status;
     }
 
     // Date range filters
@@ -212,6 +218,41 @@ exports.searchPets = async (req, res) => {
 
   } catch (err) {
     console.error('Error in searchPets:', err);
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+// New function to update pet status
+exports.updatePetStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['unused', 'active'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value' });
+    }
+
+    const pet = await Pet.findById(id);
+    if (!pet) {
+      return res.status(404).json({ error: 'Pet not found' });
+    }
+
+    // Only allow status change to 'active' if the pet has some information saved
+    if (status === 'active') {
+      const hasInfo = pet.info.name || pet.owner.name || pet.owner.phone || pet.owner.email;
+      if (!hasInfo) {
+        return res.status(400).json({ 
+          error: 'Cannot set status to active: Pet information is not saved yet' 
+        });
+      }
+    }
+
+    pet.status = status;
+    await pet.save();
+
+    return res.json(pet);
+  } catch (err) {
+    console.error('Error in updatePetStatus:', err);
     return res.status(500).json({ error: err.message });
   }
 };
