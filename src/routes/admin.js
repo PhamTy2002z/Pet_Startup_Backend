@@ -7,7 +7,7 @@ const {
   getAllPets,
   createBulkPets,
   searchPets,
-  updatePetStatus
+  recordQRScan
 } = require('../controllers/adminController');
 const { uploadAvatar } = require('../controllers/petImageController');
 
@@ -26,8 +26,8 @@ router.get('/pets', getAllPets);
 // Search pets with filters
 router.get('/pets/search', searchPets);
 
-// Update pet status
-router.patch('/pet/:id/status', updatePetStatus);
+// Record QR scan
+router.post('/pet/:id/scan', recordQRScan);
 
 // Upload avatar
 router.post('/pet/:id/avatar', uploadAvatar);

@@ -18,9 +18,10 @@ const PetSchema = new mongoose.Schema({
   avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
   status:        { 
     type: String, 
-    enum: ['unused', 'active'],
+    enum: ['unused', 'scanned', 'active'],
     default: 'unused'
   },
+  lastScannedAt: { type: Date, default: null },
   info: {
     name:      { type: String, default: '' },
     species:   { type: String, default: '' },
@@ -39,6 +40,32 @@ const PetSchema = new mongoose.Schema({
   reExaminations: { type: [ReExaminationSchema], default: [] }
 }, {
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
+});
+
+// Middleware to automatically update status based on information
+PetSchema.pre('save', function(next) {
+  // If this is a new document, keep status as 'unused'
+  if (this.isNew) {
+    return next();
+  }
+
+  // Check if any information has been saved
+  const hasInfo = this.info.name || this.owner.name || this.owner.phone || this.owner.email;
+  
+  // If QR has been scanned and information is saved, set status to 'active'
+  if (this.lastScannedAt && hasInfo) {
+    this.status = 'active';
+  }
+  // If QR has been scanned but no information saved, set status to 'scanned'
+  else if (this.lastScannedAt && !hasInfo) {
+    this.status = 'scanned';
+  }
+  // If QR hasn't been scanned yet, keep status as 'unused'
+  else if (!this.lastScannedAt) {
+    this.status = 'unused';
+  }
+
+  next();
 });
 
 // Không cần thiết phải xóa index owner.email nữa, loại bỏ việc drop index
