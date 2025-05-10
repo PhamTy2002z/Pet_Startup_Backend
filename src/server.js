@@ -11,11 +11,21 @@ const app = express();
 
 // Cấu hình CORS
 const corsOptions = {
-  origin: 'https://pet-startup-frontend.onrender.com',  // Địa chỉ frontend của bạn trên Render
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],           // Các phương thức được phép
-  allowedHeaders: ['Content-Type', 'Authorization'],   // Các header cho phép
-  credentials: true,                                   // Nếu sử dụng cookie, auth header, v.v.
+  origin: (origin, callback) => {
+    // Cho phép yêu cầu từ localhost khi phát triển và từ Render khi deploy
+    const allowedOrigins = ['http://localhost:3000', 'https://pet-startup-frontend.onrender.com'];
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);  // cho phép yêu cầu
+    } else {
+      callback(new Error('Not allowed by CORS'));  // từ chối yêu cầu
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],   // Các phương thức HTTP mà backend cho phép
+  allowedHeaders: ['Content-Type', 'Authorization'],  // Các header cho phép
+  credentials: true,  // Nếu bạn đang sử dụng cookie hoặc Authorization header
 };
+
+app.use(cors(corsOptions));  // Áp dụng CORS với cấu hình mới
 
 app.use(cors(corsOptions));
 
