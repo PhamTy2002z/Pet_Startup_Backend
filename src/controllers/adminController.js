@@ -134,9 +134,37 @@ exports.searchPets = async (req, res) => {
       query['owner.phone'] = { $regex: phone, $options: 'i' };
     }
 
-    // Filter by status
-    if (status && ['unused', 'active'].includes(status)) {
-      query.status = status;
+    // Enhanced status filtering
+    if (status) {
+      if (status === 'active') {
+        // For active status, check if any information exists
+        query.$or = [
+          { 'info.name': { $ne: '' } },
+          { 'owner.name': { $ne: '' } },
+          { 'owner.phone': { $ne: '' } },
+          { 'owner.email': { $ne: '' } },
+          { 'info.species': { $ne: '' } },
+          { 'info.birthDate': { $ne: null } },
+          { 'allergicInfo.substances': { $ne: [] } },
+          { 'allergicInfo.note': { $ne: '' } },
+          { 'vaccinations': { $ne: [] } },
+          { 'reExaminations': { $ne: [] } }
+        ];
+      } else if (status === 'unused') {
+        // For unused status, check if no information exists
+        query.$and = [
+          { 'info.name': '' },
+          { 'owner.name': '' },
+          { 'owner.phone': '' },
+          { 'owner.email': '' },
+          { 'info.species': '' },
+          { 'info.birthDate': null },
+          { 'allergicInfo.substances': [] },
+          { 'allergicInfo.note': '' },
+          { 'vaccinations': [] },
+          { 'reExaminations': [] }
+        ];
+      }
     }
 
     // Date range filters
@@ -200,16 +228,39 @@ exports.searchPets = async (req, res) => {
     // Calculate 24 hours ago timestamp
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    // Add recentlyUpdated field to each pet
-    const petsWithRecentFlag = pets.map(pet => {
+    // Add detailed information to each pet
+    const petsWithDetails = pets.map(pet => {
       const petObj = pet.toObject();
+      
+      // Add recentlyUpdated flag
       petObj.recentlyUpdated = pet.updatedAt >= twentyFourHoursAgo;
+
+      // Add detailed status information
+      petObj.statusDetails = {
+        hasPetInfo: Boolean(pet.info.name || pet.info.species || pet.info.birthDate),
+        hasOwnerInfo: Boolean(pet.owner.name || pet.owner.phone || pet.owner.email),
+        hasMedicalInfo: Boolean(
+          pet.allergicInfo.substances.length > 0 ||
+          pet.allergicInfo.note ||
+          pet.vaccinations.length > 0 ||
+          pet.reExaminations.length > 0
+        )
+      };
+
       return petObj;
     });
 
+    // Get status counts
+    const statusCounts = {
+      total: pets.length,
+      active: pets.filter(pet => pet.status === 'active').length,
+      unused: pets.filter(pet => pet.status === 'unused').length
+    };
+
     return res.json({
       count: pets.length,
-      pets: petsWithRecentFlag,
+      statusCounts,
+      pets: petsWithDetails,
       sort: {
         by: sortBy || 'createdAt',
         order: sortOrder
