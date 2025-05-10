@@ -9,6 +9,16 @@ const { startReminderJob } = require('./utils/scheduler');
 
 const app = express();
 
+// Cấu hình CORS
+const corsOptions = {
+  origin: 'https://pet-startup-frontend.onrender.com',  // Địa chỉ frontend của bạn trên Render
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],           // Các phương thức được phép
+  allowedHeaders: ['Content-Type', 'Authorization'],   // Các header cho phép
+  credentials: true,                                   // Nếu sử dụng cookie, auth header, v.v.
+};
+
+app.use(cors(corsOptions));
+
 // Connect MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -23,7 +33,6 @@ conn.once('open', () => {
   });
 });
 
-app.use(cors());
 app.use(bodyParser.json());
 
 // API routes

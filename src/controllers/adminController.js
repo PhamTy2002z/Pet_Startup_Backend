@@ -8,8 +8,7 @@ function getBaseUrl() {
   if (!baseUrl) {
     throw new Error('BASE_URL environment variable is not set');
   }
-  // Remove trailing slash if exists
-  return baseUrl.replace(/\/$/, '');
+  return baseUrl.replace(/\/$/, '');  // Remove trailing slash if exists
 }
 
 exports.createPet = async (req, res) => {
