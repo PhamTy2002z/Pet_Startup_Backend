@@ -135,7 +135,7 @@ exports.searchPets = async (req, res) => {
     }
 
     // Filter by status
-    if (status && ['unused', 'scanned', 'active'].includes(status)) {
+    if (status && ['unused', 'active'].includes(status)) {
       query.status = status;
     }
 

@@ -18,10 +18,9 @@ const PetSchema = new mongoose.Schema({
   avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
   status:        { 
     type: String, 
-    enum: ['unused', 'scanned', 'active'],
+    enum: ['unused', 'active'],
     default: 'unused'
   },
-  lastScannedAt: { type: Date, default: null },
   info: {
     name:      { type: String, default: '' },
     species:   { type: String, default: '' },
@@ -52,18 +51,8 @@ PetSchema.pre('save', function(next) {
   // Check if any information has been saved
   const hasInfo = this.info.name || this.owner.name || this.owner.phone || this.owner.email;
   
-  // If QR has been scanned and information is saved, set status to 'active'
-  if (this.lastScannedAt && hasInfo) {
-    this.status = 'active';
-  }
-  // If QR has been scanned but no information saved, set status to 'scanned'
-  else if (this.lastScannedAt && !hasInfo) {
-    this.status = 'scanned';
-  }
-  // If QR hasn't been scanned yet, keep status as 'unused'
-  else if (!this.lastScannedAt) {
-    this.status = 'unused';
-  }
+  // Update status based on whether information exists
+  this.status = hasInfo ? 'active' : 'unused';
 
   next();
 });
