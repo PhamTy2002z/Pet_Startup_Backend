@@ -26,21 +26,21 @@ exports.createPet = async (req, res) => {
     console.log('Initial pet document created with ID:', pet._id);
 
     // 2) Sinh URL edit + QR
-    const baseUrl = getBaseUrl();
-    const editUrl = `${baseUrl}/edit/${pet._id}`;
+    const baseUrl = getBaseUrl();  // Sử dụng getBaseUrl để lấy base URL chính xác
+    const editUrl = `${baseUrl}/edit/${pet._id}`;  // URL đến trang chỉnh sửa pet
     console.log('Environment variables:', {
       BASE_URL: baseUrl,
       NODE_ENV: process.env.NODE_ENV
     });
     console.log('Generating QR code for URL:', editUrl);
-    const qrDataUri = await generateQRCode(editUrl);
+    const qrDataUri = await generateQRCode(editUrl);  // Sinh mã QR từ URL
 
     // 3) Cập nhật lại qrCodeUrl chính xác (lần này validation sẽ pass)
     pet.qrCodeUrl = qrDataUri;
     await pet.save();
     console.log('Pet document updated with QR code');
 
-    return res.status(201).json(pet);
+    return res.status(201).json(pet);  // Trả về kết quả
   } catch (err) {
     console.error('Error in createPet:', err);
     return res.status(500).json({ error: err.message });
@@ -65,7 +65,7 @@ exports.createBulkPets = async (req, res) => {
   }
 
   try {
-    const baseUrl = getBaseUrl();
+    const baseUrl = getBaseUrl();  // Lấy baseUrl chính xác
     const pets = [];
     for (let i = 0; i < quantity; i++) {
       // Tạo document rỗng trước
