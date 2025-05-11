@@ -20,22 +20,28 @@ const testEmailConfig = async () => {
   }
 };
 
-const sendReminderEmail = async (to, petName, revisitDate) => {
+const sendReminderEmail = async (to, petName, appointmentInfo) => {
+  // Check if email is valid
+  if (!to || !to.includes('@')) {
+    console.error('Invalid email address:', to);
+    return { success: false, error: 'Invalid email address' };
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: to,
-    subject: `Reminder: ${petName}'s Check-up Appointment`,
+    subject: `Nhắc nhở: Lịch tái khám của ${petName}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #4a90e2;">Pet Check-up Reminder</h2>
-        <p>Dear Pet Owner,</p>
-        <p>This is a reminder that your pet <strong>${petName}</strong> has a check-up appointment scheduled for:</p>
+        <h2 style="color: #4a90e2;">Nhắc nhở lịch tái khám</h2>
+        <p>Kính gửi chủ thú cưng,</p>
+        <p>Đây là email nhắc nhở về lịch tái khám sắp tới của thú cưng <strong>${petName}</strong>:</p>
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <p style="margin: 0;"><strong>Date:</strong> ${revisitDate}</p>
+          <p style="margin: 0;"><strong>Ngày tái khám:</strong> ${appointmentInfo}</p>
         </div>
-        <p>Please make sure to bring your pet in for their check-up at the scheduled time.</p>
-        <p>If you need to reschedule, please contact us as soon as possible.</p>
-        <p>Best regards,<br>Pet Care Team</p>
+        <p>Vui lòng đưa thú cưng của bạn đến khám theo đúng lịch hẹn.</p>
+        <p>Nếu bạn cần thay đổi lịch hẹn, hãy liên hệ với chúng tôi càng sớm càng tốt.</p>
+        <p>Trân trọng,<br>Đội ngũ chăm sóc thú cưng</p>
       </div>
     `
   };

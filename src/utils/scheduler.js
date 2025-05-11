@@ -8,24 +8,42 @@ const startReminderJob = () => {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Đặt thời gian về 00:00:00 để chỉ so sánh ngày
+      
+      const threeDaysLater = new Date(today);
+      threeDaysLater.setDate(today.getDate() + 3); // Ngày sau 3 ngày
 
-      // Tìm các pet có ngày tái khám trong 3 ngày tới
+      // Tìm tất cả pet có lịch tái khám
       const pets = await Pet.find({
-        revisitDate: {
+        'reExaminations.date': {
           $gte: today,
-          $lte: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000) // Tính 3 ngày sau
-        }
+          $lte: threeDaysLater
+        },
+        'owner.email': { $ne: '' } // Đảm bảo pet có email của chủ
       });
 
-      // Duyệt qua các pet và gửi email nhắc nhở
-      pets.forEach(pet => {
+      console.log(`Found ${pets.length} pets with upcoming reexaminations`);
+
+      // Duyệt qua các pet có lịch tái khám
+      for (const pet of pets) {
         const ownerEmail = pet.owner.email;
         const petName = pet.info.name;
-        const revisitDate = new Date(pet.revisitDate).toISOString().split('T')[0]; // Định dạng ngày
-
-        // Gửi email nhắc nhở
-        sendReminderEmail(ownerEmail, petName, revisitDate);
-      });
+        
+        // Lọc các lịch tái khám trong khoảng 3 ngày tới
+        const upcomingReExaminations = pet.reExaminations.filter(reExam => {
+          const examDate = new Date(reExam.date);
+          return examDate >= today && examDate <= threeDaysLater;
+        });
+        
+        // Gửi email nhắc nhở cho từng lịch tái khám
+        for (const reExam of upcomingReExaminations) {
+          const examDate = new Date(reExam.date).toLocaleDateString('vi-VN');
+          const note = reExam.note ? ` (Ghi chú: ${reExam.note})` : '';
+          
+          // Gửi email nhắc nhở
+          await sendReminderEmail(ownerEmail, petName, examDate + note);
+          console.log(`Sent reminder for pet ${petName} to ${ownerEmail} for date ${examDate}`);
+        }
+      }
 
       console.log(`Checked pets for reminders on ${today.toISOString()}`);
     } catch (error) {

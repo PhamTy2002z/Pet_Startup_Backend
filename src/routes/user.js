@@ -66,16 +66,20 @@ router.get('/test-email-config', async (req, res) => {
 // Test sending a reminder email
 router.post('/test-reminder', async (req, res) => {
   try {
-    const { to, petName, revisitDate } = req.body;
+    const { to, petName, appointmentDate, note } = req.body;
     
-    if (!to || !petName || !revisitDate) {
+    if (!to || !petName || !appointmentDate) {
       return res.status(400).json({ 
         message: 'Missing required fields',
-        required: ['to', 'petName', 'revisitDate']
+        required: ['to', 'petName', 'appointmentDate']
       });
     }
 
-    const result = await sendReminderEmail(to, petName, revisitDate);
+    // Format the appointment info with note if provided
+    const formattedDate = new Date(appointmentDate).toLocaleDateString('vi-VN');
+    const appointmentInfo = note ? `${formattedDate} (Ghi chú: ${note})` : formattedDate;
+
+    const result = await sendReminderEmail(to, petName, appointmentInfo);
     res.json({ 
       message: 'Test reminder email sent successfully',
       messageId: result.messageId
