@@ -24,7 +24,8 @@ const PetSchema = new mongoose.Schema({
   info: {
     name:      { type: String, default: '' },
     species:   { type: String, default: '' },
-    birthDate: { type: Date,   default: null }
+    birthDate: { type: Date,   default: null },
+    description: { type: String, default: '' }
   },
   owner: {
     name:  { type: String, default: '' },

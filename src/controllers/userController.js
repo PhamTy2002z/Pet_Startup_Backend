@@ -36,8 +36,14 @@ exports.updatePet = async (req, res) => {
       info.birthDate = new Date(info.birthDate);
     }
 
+    // Ensure description is included in the info object
+    const updatedInfo = {
+      ...info,
+      description: info.description || ''
+    };
+
     const updateData = {
-      info,
+      info: updatedInfo,
       owner,
       vaccinations: parsedVaccinations,
       reExaminations: parsedReExaminations,
@@ -126,6 +132,35 @@ exports.updateAllergicInfo = async (req, res) => {
     console.error('Error updating allergic information:', error);
     res.status(500).json({
       message: 'Error updating allergic information',
+      error: error.message
+    });
+  }
+};
+
+// Cập nhật mô tả (description) của pet
+exports.updatePetDescription = async (req, res) => {
+  try {
+    const { description } = req.body;
+
+    // Kiểm tra xem pet có tồn tại không
+    const pet = await Pet.findById(req.params.id);
+    if (!pet) {
+      return res.status(404).json({ message: 'Pet not found' });
+    }
+
+    // Cập nhật mô tả cho pet
+    pet.info.description = description || '';
+
+    await pet.save();
+
+    res.json({
+      message: 'Pet description updated successfully',
+      pet
+    });
+  } catch (error) {
+    console.error('Error updating pet description:', error);
+    res.status(500).json({
+      message: 'Error updating pet description',
       error: error.message
     });
   }
