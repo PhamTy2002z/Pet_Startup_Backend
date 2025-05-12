@@ -20,7 +20,7 @@ const testEmailConfig = async () => {
   }
 };
 
-const sendReminderEmail = async (to, petName, appointmentInfo) => {
+const sendReminderEmail = async (to, petName, appointmentInfo, petSpecies, ownerName) => {
   // Check if email is valid
   if (!to || !to.includes('@')) {
     console.error('Invalid email address:', to);
@@ -34,9 +34,11 @@ const sendReminderEmail = async (to, petName, appointmentInfo) => {
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4a90e2;">Nhắc nhở lịch tái khám</h2>
-        <p>Kính gửi chủ thú cưng,</p>
-        <p>Đây là email nhắc nhở về lịch tái khám sắp tới của thú cưng <strong>${petName}</strong>:</p>
+        <p>Kính gửi ${ownerName},</p>
+        <p>Đây là email nhắc nhở về lịch tái khám sắp tới của thú cưng của bạn:</p>
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <p style="margin: 0;"><strong>Tên thú cưng:</strong> ${petName}</p>
+          <p style="margin: 10px 0;"><strong>Loài:</strong> ${petSpecies}</p>
           <p style="margin: 0;"><strong>Ngày tái khám:</strong> ${appointmentInfo}</p>
         </div>
         <p>Vui lòng đưa thú cưng của bạn đến khám theo đúng lịch hẹn.</p>

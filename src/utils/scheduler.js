@@ -27,6 +27,8 @@ const startReminderJob = () => {
       for (const pet of pets) {
         const ownerEmail = pet.owner.email;
         const petName = pet.info.name;
+        const petSpecies = pet.info.species;
+        const ownerName = pet.owner.name;
         
         // Lọc các lịch tái khám trong khoảng 3 ngày tới
         const upcomingReExaminations = pet.reExaminations.filter(reExam => {
@@ -40,8 +42,8 @@ const startReminderJob = () => {
           const note = reExam.note ? ` (Ghi chú: ${reExam.note})` : '';
           
           // Gửi email nhắc nhở
-          await sendReminderEmail(ownerEmail, petName, examDate + note);
-          console.log(`Sent reminder for pet ${petName} to ${ownerEmail} for date ${examDate}`);
+          await sendReminderEmail(ownerEmail, petName, examDate + note, petSpecies, ownerName);
+          console.log(`Sent reminder for pet ${petName} (${petSpecies}) to ${ownerEmail} for date ${examDate}`);
         }
       }
 
@@ -49,6 +51,9 @@ const startReminderJob = () => {
     } catch (error) {
       console.error('Error in reminder cron job:', error);
     }
+  }, {
+    scheduled: true,
+    timezone: 'Asia/Ho_Chi_Minh'
   });
 };
 
