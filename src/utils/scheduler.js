@@ -71,69 +71,105 @@ const checkRemindersNow = async () => {
   }
 };
 
-// Cron job để kiểm tra mỗi ngày vào lúc 00:00 (12 AM)
-const startReminderJob = () => {
-  // For testing purposes, you can also log a message when the scheduler starts
-  console.log(`Reminder scheduler started at ${new Date().toISOString()}`);
-  
-  cron.schedule('0 0 * * *', async () => {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Đặt thời gian về 00:00:00 để chỉ so sánh ngày
-      
-      const threeDaysLater = new Date(today);
-      threeDaysLater.setDate(today.getDate() + 3); // Ngày sau 3 ngày
-      threeDaysLater.setHours(23, 59, 59, 999); // Set to end of day for proper comparison
+// Common function for checking reminders to avoid code duplication
+const checkForReminders = async (isTest = false) => {
+  const logPrefix = isTest ? '[TEST]' : '[SCHEDULED]';
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const threeDaysLater = new Date(today);
+    threeDaysLater.setDate(today.getDate() + 3);
+    threeDaysLater.setHours(23, 59, 59, 999);
 
-      console.log(`Checking for appointments between ${today.toISOString()} and ${threeDaysLater.toISOString()}`);
+    console.log(`${logPrefix} Checking for appointments between ${today.toISOString()} and ${threeDaysLater.toISOString()}`);
 
-      // Tìm tất cả pet có lịch tái khám trong khoảng thời gian
-      const pets = await Pet.find({
-        reExaminations: {
-          $elemMatch: {
-            date: {
-              $gte: today,
-              $lte: threeDaysLater
-            }
+    const pets = await Pet.find({
+      reExaminations: {
+        $elemMatch: {
+          date: {
+            $gte: today,
+            $lte: threeDaysLater
           }
-        },
-        'owner.email': { $exists: true, $ne: '' } // Đảm bảo pet có email của chủ
+        }
+      },
+      'owner.email': { $exists: true, $ne: '' }
+    });
+
+    console.log(`${logPrefix} Found ${pets.length} pets with upcoming reexaminations`);
+
+    for (const pet of pets) {
+      const ownerEmail = pet.owner.email;
+      const petName = pet.info.name || 'Thú cưng của bạn';
+      const petSpecies = pet.info.species || 'Không xác định';
+      const ownerName = pet.owner.name || 'Quý khách';
+      
+      const upcomingReExaminations = pet.reExaminations.filter(reExam => {
+        const examDate = new Date(reExam.date);
+        return examDate >= today && examDate <= threeDaysLater;
       });
-
-      console.log(`Found ${pets.length} pets with upcoming reexaminations`);
-
-      // Duyệt qua các pet có lịch tái khám
-      for (const pet of pets) {
-        const ownerEmail = pet.owner.email;
-        const petName = pet.info.name || 'Thú cưng của bạn';
-        const petSpecies = pet.info.species || 'Không xác định';
-        const ownerName = pet.owner.name || 'Quý khách';
+      
+      if (isTest) {
+        console.log(`${logPrefix} Pet: ${petName}, Owner: ${ownerName}, Email: ${ownerEmail}`);
+        console.log(`${logPrefix} Found ${upcomingReExaminations.length} upcoming appointments`);
+      }
+      
+      for (const reExam of upcomingReExaminations) {
+        const examDate = new Date(reExam.date).toLocaleDateString('vi-VN');
+        const note = reExam.note ? ` (Ghi chú: ${reExam.note})` : '';
         
-        // Lọc các lịch tái khám trong khoảng 3 ngày tới
-        const upcomingReExaminations = pet.reExaminations.filter(reExam => {
-          const examDate = new Date(reExam.date);
-          return examDate >= today && examDate <= threeDaysLater;
-        });
+        if (isTest) {
+          console.log(`${logPrefix} Will send reminder for date: ${examDate}`);
+        }
         
-        // Gửi email nhắc nhở cho từng lịch tái khám
-        for (const reExam of upcomingReExaminations) {
-          const examDate = new Date(reExam.date).toLocaleDateString('vi-VN');
-          const note = reExam.note ? ` (Ghi chú: ${reExam.note})` : '';
-          
-          // Gửi email nhắc nhở
+        try {
           await sendReminderEmail(ownerEmail, petName, examDate + note, petSpecies, ownerName);
-          console.log(`Sent reminder for pet ${petName} (${petSpecies}) to ${ownerEmail} for date ${examDate}`);
+          console.log(`${logPrefix} Sent reminder for pet ${petName} (${petSpecies}) to ${ownerEmail} for date ${examDate}`);
+        } catch (error) {
+          console.error(`${logPrefix} Failed to send email to ${ownerEmail}:`, error.message);
         }
       }
-
-      console.log(`Completed checking pets for reminders on ${today.toISOString()}`);
-    } catch (error) {
-      console.error('Error in reminder cron job:', error);
     }
+
+    console.log(`${logPrefix} Completed checking pets for reminders at ${new Date().toISOString()}`);
+    return { success: true, petsChecked: pets.length };
+  } catch (error) {
+    console.error(`${logPrefix} Error in reminder check:`, error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Cron job để kiểm tra mỗi ngày vào lúc 9:00 AM (giờ Việt Nam)
+const startReminderJob = () => {
+  console.log(`Reminder scheduler started at ${new Date().toISOString()}`);
+  console.log('Scheduler will run daily at 9:00 AM (Asia/Ho_Chi_Minh time)');
+  
+  // Run immediately on startup to test the system
+  console.log('Running initial check on startup...');
+  checkForReminders(false).then(result => {
+    console.log('Initial check result:', result);
+  });
+
+  // Schedule the daily job to run at 9:00 AM Vietnam time
+  const job = cron.schedule('0 9 * * *', async () => {
+    console.log(`[SCHEDULED] Auto reminder triggered at ${new Date().toISOString()}`);
+    await checkForReminders(false);
   }, {
     scheduled: true,
     timezone: 'Asia/Ho_Chi_Minh'
   });
+  
+  // Ensure the job is running
+  if (job.running) {
+    console.log('Reminder scheduler is running successfully');
+  } else {
+    console.error('WARNING: Reminder scheduler failed to start');
+    // Try to start it manually
+    job.start();
+    console.log('Attempted to manually start the scheduler');
+  }
+  
+  return job;
 };
 
 module.exports = { startReminderJob, checkRemindersNow };
