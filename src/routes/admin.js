@@ -1,6 +1,6 @@
 // src/routes/admin.js
 const express = require('express');
-const router  = express.Router();
+const router = express.Router();
 const authAdmin = require('../middleware/authAdmin');
 const {
   createPet,
@@ -9,6 +9,7 @@ const {
   searchPets
 } = require('../controllers/adminController');
 const { uploadAvatar } = require('../controllers/petImageController');
+const { checkRemindersNow } = require('../utils/scheduler');
 
 
 // Trước hết tất cả đều phải auth
@@ -27,6 +28,16 @@ router.get('/pets/search', searchPets);
 
 // Upload avatar
 router.post('/pet/:id/avatar', uploadAvatar);
+
+// Test reminder emails manually
+router.post('/test-reminders', async (req, res) => {
+  try {
+    const result = await checkRemindersNow();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 module.exports = router;
