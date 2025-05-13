@@ -9,7 +9,8 @@ const VaccinationSchema = new mongoose.Schema({
 // Schema cho lịch tái khám
 const ReExaminationSchema = new mongoose.Schema({
   date: { type: Date, required: true },
-  note: { type: String, default: '' }
+  note: { type: String, default: '' },
+  reminderSent: { type: Boolean, default: false } // Track whether a reminder has been sent
 }, { _id: false });
 
 // Schema chính cho Pet

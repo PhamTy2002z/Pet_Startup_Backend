@@ -84,19 +84,23 @@ const checkForReminders = async (isTest = false) => {
 
     console.log(`${logPrefix} Checking for appointments between ${today.toISOString()} and ${threeDaysLater.toISOString()}`);
 
+    // Find all pets with upcoming re-examinations that have not been reminded yet
     const pets = await Pet.find({
       reExaminations: {
         $elemMatch: {
           date: {
             $gte: today,
             $lte: threeDaysLater
-          }
+          },
+          reminderSent: { $ne: true } // Only get appointments where reminder hasn't been sent
         }
       },
       'owner.email': { $exists: true, $ne: '' }
     });
 
-    console.log(`${logPrefix} Found ${pets.length} pets with upcoming reexaminations`);
+    console.log(`${logPrefix} Found ${pets.length} pets with upcoming reexaminations needing reminders`);
+
+    let remindersSent = 0;
 
     for (const pet of pets) {
       const ownerEmail = pet.owner.email;
@@ -104,14 +108,17 @@ const checkForReminders = async (isTest = false) => {
       const petSpecies = pet.info.species || 'Không xác định';
       const ownerName = pet.owner.name || 'Quý khách';
       
+      // Filter for upcoming re-examinations that haven't been reminded yet
       const upcomingReExaminations = pet.reExaminations.filter(reExam => {
         const examDate = new Date(reExam.date);
-        return examDate >= today && examDate <= threeDaysLater;
+        return examDate >= today && 
+               examDate <= threeDaysLater && 
+               reExam.reminderSent !== true; // Only include non-reminded appointments
       });
       
       if (isTest) {
         console.log(`${logPrefix} Pet: ${petName}, Owner: ${ownerName}, Email: ${ownerEmail}`);
-        console.log(`${logPrefix} Found ${upcomingReExaminations.length} upcoming appointments`);
+        console.log(`${logPrefix} Found ${upcomingReExaminations.length} upcoming appointments needing reminders`);
       }
       
       for (const reExam of upcomingReExaminations) {
@@ -125,6 +132,19 @@ const checkForReminders = async (isTest = false) => {
         try {
           await sendReminderEmail(ownerEmail, petName, examDate + note, petSpecies, ownerName);
           console.log(`${logPrefix} Sent reminder for pet ${petName} (${petSpecies}) to ${ownerEmail} for date ${examDate}`);
+          
+          // Mark this re-examination as reminded in the database
+          await Pet.updateOne(
+            { 
+              _id: pet._id,
+              "reExaminations.date": reExam.date 
+            },
+            { 
+              $set: { "reExaminations.$.reminderSent": true } 
+            }
+          );
+          console.log(`${logPrefix} Marked reminder as sent in the database`);
+          remindersSent++;
         } catch (error) {
           console.error(`${logPrefix} Failed to send email to ${ownerEmail}:`, error.message);
         }
@@ -132,7 +152,8 @@ const checkForReminders = async (isTest = false) => {
     }
 
     console.log(`${logPrefix} Completed checking pets for reminders at ${new Date().toISOString()}`);
-    return { success: true, petsChecked: pets.length };
+    console.log(`${logPrefix} Sent ${remindersSent} reminders in total`);
+    return { success: true, petsChecked: pets.length, remindersSent };
   } catch (error) {
     console.error(`${logPrefix} Error in reminder check:`, error);
     return { success: false, error: error.message };
