@@ -50,7 +50,7 @@ exports.createPet = async (req, res) => {
 
 exports.getAllPets = async (req, res) => {
   try {
-    const pets = await Pet.find().sort({ createdAt: -1 });
+    const pets = await Pet.find().sort({ createdAt: -1 }).populate('themeId');
     return res.json(pets);
   } catch (err) {
     console.error('Error in getAllPets:', err);
@@ -223,7 +223,7 @@ exports.searchPets = async (req, res) => {
     }
 
     // Execute search with sorting
-    const pets = await Pet.find(query).sort(sort);
+    const pets = await Pet.find(query).sort(sort).populate('themeId');
 
     // Calculate 24 hours ago timestamp
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);

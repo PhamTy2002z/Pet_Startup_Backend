@@ -10,6 +10,17 @@ const {
 } = require('../controllers/adminController');
 const { uploadAvatar } = require('../controllers/petImageController');
 const { checkRemindersNow } = require('../utils/scheduler');
+const {
+  uploadThemeImage,
+  createTheme,
+  getAllThemes,
+  getThemeById,
+  updateTheme,
+  deleteTheme,
+  assignThemeToPet,
+  batchUpdateThemeStatus,
+  updateThemeOrder
+} = require('../controllers/themeController');
 
 
 // Trước hết tất cả đều phải auth
@@ -28,6 +39,16 @@ router.get('/pets/search', searchPets);
 
 // Upload avatar
 router.post('/pet/:id/avatar', uploadAvatar);
+
+// Theme management routes
+router.post('/themes', uploadThemeImage, createTheme);
+router.get('/themes', getAllThemes);
+router.put('/themes/batch-status', batchUpdateThemeStatus);
+router.put('/themes/order', updateThemeOrder);
+router.get('/themes/:id', getThemeById);
+router.put('/themes/:id', uploadThemeImage, updateTheme);
+router.delete('/themes/:id', deleteTheme);
+router.post('/pets/theme', assignThemeToPet);
 
 // Test reminder emails manually
 router.post('/test-reminders', async (req, res) => {

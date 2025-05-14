@@ -17,6 +17,7 @@ const ReExaminationSchema = new mongoose.Schema({
 const PetSchema = new mongoose.Schema({
   qrCodeUrl:     { type: String, required: true },
   avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
+  themeId:       { type: mongoose.Schema.Types.ObjectId, ref: 'Theme', default: null },
   status:        { 
     type: String, 
     enum: ['unused', 'active'],

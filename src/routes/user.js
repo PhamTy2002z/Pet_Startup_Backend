@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPetById, updatePet, updatePetOwnerEmail, updateAllergicInfo, updatePetDescription } = require('../controllers/userController');
+const { getPetById, updatePet, updatePetOwnerEmail, updateAllergicInfo, updatePetDescription, applyThemeToPet, getActiveThemes } = require('../controllers/userController');
 const { uploadAvatar } = require('../controllers/petImageController');
 const { sendReminderEmail, testEmailConfig } = require('../utils/mail'); // Import hàm gửi email
 
@@ -28,6 +28,11 @@ router.put('/pet/:id/description', updatePetDescription);
 // Upload avatar (cho user, không cần authAdmin)
 router.post('/pet/:id/avatar', uploadAvatar);
 
+// Apply theme to pet
+router.put('/pet/:id/theme', applyThemeToPet);
+
+// Get active themes
+router.get('/themes', getActiveThemes);
 
 // Test email route (gửi email nhắc lịch)
 router.post('/pet/:id/send-reminder', async (req, res) => {
