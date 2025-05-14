@@ -34,7 +34,17 @@ const PetSchema = new mongoose.Schema({
     email: { type: String, default: '', lowercase: true, trim: true }
   },
   allergicInfo: { // Thay đổi từ 'allergicPerson' sang 'allergicInfo'
-    substances: { type: [String], default: [] }, // Danh sách các chất gây dị ứng (ví dụ: lông mèo, thức ăn, v.v.)
+    substances: { 
+      type: [String], 
+      default: [], 
+      validate: [{
+        validator: function(arr) {
+          // Each substance must be a string with only letters and spaces, up to 10 chars
+          return arr.every(s => typeof s === 'string' && /^[\p{L} ]{1,10}$/u.test(s));
+        },
+        message: 'Each allergy name must be up to 10 characters and can only contain letters and spaces.'
+      }]
+    }, // Danh sách các chất gây dị ứng (ví dụ: lông mèo, thức ăn, v.v.)
     note: { type: String, default: '' } // Ghi chú về dị ứng
   },
   vaccinations: { type: [VaccinationSchema], default: [] },
