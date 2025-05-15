@@ -3,6 +3,8 @@ const router = express.Router();
 const { getPetById, updatePet, updatePetOwnerEmail, updateAllergicInfo, updatePetDescription, applyThemeToPet, getActiveThemes } = require('../controllers/userController');
 const { uploadAvatar } = require('../controllers/petImageController');
 const { sendReminderEmail, testEmailConfig } = require('../utils/mail'); // Import hàm gửi email
+const fs = require('fs');
+const path = require('path');
 
 // Debug middleware
 router.use((req, res, next) => {
@@ -33,6 +35,30 @@ router.put('/pet/:id/theme', applyThemeToPet);
 
 // Get active themes
 router.get('/themes', getActiveThemes);
+
+// Check if a theme image exists
+router.get('/theme-image-check/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const imagePath = path.join(process.cwd(), 'public', 'uploads', 'themes', filename);
+  
+  // Check if file exists
+  fs.access(imagePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ 
+        exists: false, 
+        message: 'Image not found',
+        requestedPath: `/uploads/themes/${filename}`
+      });
+    }
+    
+    // File exists
+    res.json({ 
+      exists: true, 
+      path: `/uploads/themes/${filename}`,
+      fullPath: imagePath
+    });
+  });
+});
 
 // Test email route (gửi email nhắc lịch)
 router.post('/pet/:id/send-reminder', async (req, res) => {

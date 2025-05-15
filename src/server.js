@@ -27,8 +27,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));  // Áp dụng CORS với cấu hình mới
 
-app.use(cors(corsOptions));
-
 // Connect MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -44,6 +42,11 @@ conn.once('open', () => {
 });
 
 app.use(bodyParser.json());
+
+// Serve static files from the public directory for uploads
+const publicPath = path.join(__dirname, '../public');
+console.log('Serving static files from:', publicPath);
+app.use(express.static(publicPath));
 
 // API routes
 app.use('/api/auth', require('./routes/auth'));
