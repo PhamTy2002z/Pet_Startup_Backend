@@ -163,16 +163,10 @@ const checkForReminders = async (isTest = false) => {
 // Cron job để kiểm tra mỗi ngày vào lúc 9:00 AM (giờ Việt Nam)
 const startReminderJob = () => {
   console.log(`Reminder scheduler started at ${new Date().toISOString()}`);
-  console.log('Scheduler will run daily at 9:00 AM (Asia/Ho_Chi_Minh time)');
+  console.log('Scheduler will run every 15 minutes (Asia/Ho_Chi_Minh time)');
   
-  // Run immediately on startup to test the system
-  console.log('Running initial check on startup...');
-  checkForReminders(false).then(result => {
-    console.log('Initial check result:', result);
-  });
-
-  // Schedule the daily job to run at 9:00 AM Vietnam time
-  const job = cron.schedule('0 9 * * *', async () => {
+  // Schedule the job to run every 15 minutes
+  const job = cron.schedule('*/15 * * * *', async () => {
     console.log(`[SCHEDULED] Auto reminder triggered at ${new Date().toISOString()}`);
     await checkForReminders(false);
   }, {
