@@ -11,13 +11,12 @@ const {
 const { uploadAvatar } = require('../controllers/petImageController');
 const { checkRemindersNow } = require('../utils/scheduler');
 const {
-  uploadThemeImage,
   createTheme,
   getAllThemes,
   getThemeById,
   updateTheme,
   deleteTheme,
-  assignThemeToPet,
+  uploadThemeImage,
   batchUpdateThemeStatus,
   updateThemeOrder
 } = require('../controllers/themeController');
@@ -48,7 +47,6 @@ router.put('/themes/order', updateThemeOrder);
 router.get('/themes/:id', getThemeById);
 router.put('/themes/:id', uploadThemeImage, updateTheme);
 router.delete('/themes/:id', deleteTheme);
-router.post('/pets/theme', assignThemeToPet);
 
 // Test reminder emails manually
 router.post('/test-reminders', async (req, res) => {

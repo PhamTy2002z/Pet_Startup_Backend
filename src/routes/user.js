@@ -1,6 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { getPetById, updatePet, updatePetOwnerEmail, updateAllergicInfo, updatePetDescription, applyThemeToPet, getActiveThemes } = require('../controllers/userController');
+const { 
+  getPetById, 
+  updatePet, 
+  updatePetOwnerEmail, 
+  updateAllergicInfo, 
+  updatePetDescription 
+} = require('../controllers/userController');
+const { 
+  getActiveThemes, 
+  getStoreThemes, 
+  getPurchasedThemes, 
+  purchaseTheme, 
+  applyPurchasedTheme 
+} = require('../controllers/themeController');
 const { uploadAvatar } = require('../controllers/petImageController');
 const { sendReminderEmail, testEmailConfig } = require('../utils/mail'); // Import hàm gửi email
 const fs = require('fs');
@@ -19,7 +32,7 @@ router.get('/pet/:id', getPetById);
 router.put('/pet/:id', updatePet);
 
 // Cập nhật email của chủ Pet
-router.put('/pet/:id/owner-email', updatePetOwnerEmail);
+router.post('/pet/:id/owner/email', updatePetOwnerEmail);
 
 // Cập nhật thông tin dị ứng của pet
 router.put('/pet/:id/allergic-info', updateAllergicInfo);
@@ -30,11 +43,29 @@ router.put('/pet/:id/description', updatePetDescription);
 // Upload avatar (cho user, không cần authAdmin)
 router.post('/pet/:id/avatar', uploadAvatar);
 
-// Apply theme to pet
-router.put('/pet/:id/theme', applyThemeToPet);
+// This route is now deprecated in favor of the new apply-theme endpoint, 
+// but we'll keep it with the new implementation for backward compatibility
+router.put('/pet/:id/theme', (req, res) => {
+  // Simply forward to our new applyPurchasedTheme with the right format
+  req.body.petId = req.params.id;
+  return applyPurchasedTheme(req, res);
+});
 
-// Get active themes
+// Theme routes
+// Get all active themes available to a pet (free and purchased)
 router.get('/themes', getActiveThemes);
+
+// Get all themes available in the store
+router.get('/store/themes', getStoreThemes);
+
+// Get all themes purchased by a pet
+router.get('/purchased-themes/:petId', getPurchasedThemes);
+
+// Purchase a theme
+router.post('/purchase-theme', purchaseTheme);
+
+// Apply a purchased theme to a pet
+router.post('/apply-theme', applyPurchasedTheme);
 
 // Check if a theme image exists
 router.get('/theme-image-check/:filename', (req, res) => {

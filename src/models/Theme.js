@@ -18,6 +18,19 @@ const ThemeSchema = new mongoose.Schema({
     type: Boolean, 
     default: true 
   },
+  isPremium: { 
+    type: Boolean, 
+    default: false
+  },
+  price: { 
+    type: Number, 
+    default: 0,
+    min: 0
+  },
+  inStore: {
+    type: Boolean,
+    default: true
+  },
   order: {
     type: Number,
     default: 0
