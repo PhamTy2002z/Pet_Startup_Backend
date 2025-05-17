@@ -1,12 +1,12 @@
 const { GridFsStorage } = require('multer-gridfs-storage');
 require('dotenv').config();
 
-const storage = new GridFsStorage({
+/* Lưu avatar vào bucket “avatars” */
+module.exports = new GridFsStorage({
   url: process.env.MONGODB_URI,
-  file: (req, file) => ({
-    bucketName: 'avatars',           // bucket trong MongoDB
-    filename: `avatar-${Date.now()}${file.originalname}`
-  })
+  options: { useNewUrlParser: true, useUnifiedTopology: true },
+  file: (_req, file) => ({
+    bucketName: 'avatars',
+    filename  : `avatar-${Date.now()}-${file.originalname}`,
+  }),
 });
-
-module.exports = storage;

@@ -1,44 +1,23 @@
 const mongoose = require('mongoose');
 
 const UserThemeSchema = new mongoose.Schema({
-  petId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Pet',
-    required: true
-  },
-  themeId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Theme',
-    required: true
-  },
-  purchaseDate: {
-    type: Date,
-    default: Date.now
-  },
-  // We'll store transaction details here to simulate payments
+  petId  : { type: mongoose.Schema.Types.ObjectId, ref: 'Pet',   required: true },
+  themeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme', required: true },
+
+  purchaseDate: { type: Date, default: Date.now },
+
   transactionDetails: {
-    // Simple simulation of a payment transaction
     transactionId: {
       type: String,
-      default: () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      default: () =>
+        `${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`,
     },
-    amount: {
-      type: Number,
-      required: true
-    },
-    status: {
-      type: String,
-      enum: ['completed', 'pending', 'failed'],
-      default: 'completed'
-    }
-  }
-}, {
-  timestamps: true
-});
+    amount: { type: Number, required: true, min: 0 },
+    status: { type: String, enum: ['completed', 'pending', 'failed'], default: 'completed' },
+  },
+}, { timestamps: true });
 
-// Compound index to ensure a pet can purchase a theme only once
+/* Mỗi pet chỉ mua 1 lần / theme */
 UserThemeSchema.index({ petId: 1, themeId: 1 }, { unique: true });
 
-const UserTheme = mongoose.model('UserTheme', UserThemeSchema);
-
-module.exports = UserTheme; 
+module.exports = mongoose.model('UserTheme', UserThemeSchema);

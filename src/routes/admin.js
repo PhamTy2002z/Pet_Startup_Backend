@@ -1,15 +1,19 @@
-// src/routes/admin.js
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
+const wrap    = require('../utils/asyncWrap');
 const authAdmin = require('../middleware/authAdmin');
+
 const {
   createPet,
   getAllPets,
   createBulkPets,
-  searchPets
+  searchPets,
 } = require('../controllers/adminController');
-const { uploadAvatar } = require('../controllers/petImageController');
-const { checkRemindersNow } = require('../utils/scheduler');
+
+const {
+  uploadAvatar,
+} = require('../controllers/petImageController');
+
 const {
   createTheme,
   getAllThemes,
@@ -18,45 +22,34 @@ const {
   deleteTheme,
   uploadThemeImage,
   batchUpdateThemeStatus,
-  updateThemeOrder
+  updateThemeOrder,
 } = require('../controllers/themeController');
 
+const { checkRemindersNow } = require('../utils/scheduler');
 
-// Trước hết tất cả đều phải auth
+/* ------- All /admin requires JWT-Admin ------- */
 router.use(authAdmin);
-// Tạo mới pet + QR
-router.post('/pet', createPet);
 
-// Tạo hàng loạt pet + QR
-router.post('/pets/bulk', createBulkPets);
+/* ---- Pet management ---- */
+router.post('/pets',            wrap(createPet));
+router.post('/pets/bulk',       wrap(createBulkPets));
+router.get ('/pets',            wrap(getAllPets));
+router.get ('/pets/search',     wrap(searchPets));
+router.post('/pets/:id/avatar', uploadAvatar);
 
-// Lấy danh sách pet
-router.get('/pets', getAllPets);
+/* ---- Theme management ---- */
+router.post   ('/themes',                 uploadThemeImage, wrap(createTheme));
+router.get    ('/themes',                 wrap(getAllThemes));
+router.get    ('/themes/:id',             wrap(getThemeById));
+router.put    ('/themes/:id',             uploadThemeImage, wrap(updateTheme));
+router.delete ('/themes/:id',             wrap(deleteTheme));
+router.put    ('/themes/batch-status',    wrap(batchUpdateThemeStatus));
+router.put    ('/themes/order',           wrap(updateThemeOrder));
 
-// Search pets with filters
-router.get('/pets/search', searchPets);
-
-// Upload avatar
-router.post('/pet/:id/avatar', uploadAvatar);
-
-// Theme management routes
-router.post('/themes', uploadThemeImage, createTheme);
-router.get('/themes', getAllThemes);
-router.put('/themes/batch-status', batchUpdateThemeStatus);
-router.put('/themes/order', updateThemeOrder);
-router.get('/themes/:id', getThemeById);
-router.put('/themes/:id', uploadThemeImage, updateTheme);
-router.delete('/themes/:id', deleteTheme);
-
-// Test reminder emails manually
-router.post('/test-reminders', async (req, res) => {
-  try {
-    const result = await checkRemindersNow();
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
+/* ---- Manual reminder test ---- */
+router.post('/test-reminders', wrap(async (req, res) => {
+  const result = await checkRemindersNow();
+  res.json(result);
+}));
 
 module.exports = router;

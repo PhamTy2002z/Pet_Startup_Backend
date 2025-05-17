@@ -1,158 +1,97 @@
 const express = require('express');
-const router = express.Router();
-const { 
-  getPetById, 
-  updatePet, 
-  updatePetOwnerEmail, 
-  updateAllergicInfo, 
-  updatePetDescription 
-} = require('../controllers/userController');
-const { 
-  getActiveThemes, 
-  getStoreThemes, 
-  getPurchasedThemes, 
-  purchaseTheme, 
-  applyPurchasedTheme 
-} = require('../controllers/themeController');
-const { uploadAvatar } = require('../controllers/petImageController');
-const { sendReminderEmail, testEmailConfig } = require('../utils/mail'); // Import hàm gửi email
-const fs = require('fs');
-const path = require('path');
+const path    = require('path');
+const fs      = require('fs');
+const wrap    = require('../utils/asyncWrap');
+const router  = express.Router();
 
-// Debug middleware
-router.use((req, res, next) => {
-  console.log('User route accessed:', req.method, req.originalUrl);
+const {
+  getPetById,
+  updatePet,
+  updatePetOwnerEmail,
+  updateAllergicInfo,
+  updatePetDescription,
+} = require('../controllers/userController');
+
+const {
+  getActiveThemes,
+  getStoreThemes,
+  getPurchasedThemes,
+  purchaseTheme,
+  applyPurchasedTheme,
+} = require('../controllers/themeController');
+
+const { uploadAvatar }   = require('../controllers/petImageController');
+const { sendReminderEmail, testEmailConfig } = require('../utils/mail');
+
+/* ===== Middleware ghi log ===== */
+router.use((req, _res, next) => {
+  console.log(`[USER] ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// Lấy pet để hiển thị form
-router.get('/pet/:id', getPetById);
+/* ===== Pet profile (public) ===== */
+router.get('/pets/:id', wrap(getPetById));
 
-// Cập nhật thông tin pet (info, owner, vaccinations)
-router.put('/pet/:id', updatePet);
+/* ===== Pet owner actions (require token QR) =====
+   TODO: gắn middleware authPet khi bạn triển khai QR-token
+*/
+router.put   ('/pets/:id',                 wrap(updatePet));
+router.post  ('/pets/:id/owner-email',     wrap(updatePetOwnerEmail));
+router.put   ('/pets/:id/allergic-info',   wrap(updateAllergicInfo));
+router.put   ('/pets/:id/description',     wrap(updatePetDescription));
+router.post  ('/pets/:id/avatar',          uploadAvatar);
 
-// Cập nhật email của chủ Pet
-router.post('/pet/:id/owner/email', updatePetOwnerEmail);
-
-// Cập nhật thông tin dị ứng của pet
-router.put('/pet/:id/allergic-info', updateAllergicInfo);
-
-// Cập nhật mô tả (description) của pet
-router.put('/pet/:id/description', updatePetDescription);
-
-// Upload avatar (cho user, không cần authAdmin)
-router.post('/pet/:id/avatar', uploadAvatar);
-
-// This route is now deprecated in favor of the new apply-theme endpoint, 
-// but we'll keep it with the new implementation for backward compatibility
-router.put('/pet/:id/theme', (req, res) => {
-  // Simply forward to our new applyPurchasedTheme with the right format
+/* Back-compat legacy PUT /pet/:id/theme */
+router.put('/pets/:id/theme', (req, res) => {
   req.body.petId = req.params.id;
   return applyPurchasedTheme(req, res);
 });
 
-// Theme routes
-// Get all active themes available to a pet (free and purchased)
-router.get('/themes', getActiveThemes);
+/* ===== Theme store & purchasing ===== */
+router.get ('/themes',                wrap(getActiveThemes));     // free + purchased
+router.get ('/store/themes',          wrap(getStoreThemes));
+router.get ('/purchased-themes/:petId', wrap(getPurchasedThemes));
+router.post('/purchase-theme',        wrap(purchaseTheme));
+router.post('/apply-theme',           wrap(applyPurchasedTheme));
 
-// Get all themes available in the store
-router.get('/store/themes', getStoreThemes);
-
-// Get all themes purchased by a pet
-router.get('/purchased-themes/:petId', getPurchasedThemes);
-
-// Purchase a theme
-router.post('/purchase-theme', purchaseTheme);
-
-// Apply a purchased theme to a pet
-router.post('/apply-theme', applyPurchasedTheme);
-
-// Check if a theme image exists
+/* ===== Asset check (debug) ===== */
 router.get('/theme-image-check/:filename', (req, res) => {
-  const filename = req.params.filename;
-  const imagePath = path.join(process.cwd(), 'public', 'uploads', 'themes', filename);
-  
-  // Check if file exists
-  fs.access(imagePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      return res.status(404).json({ 
-        exists: false, 
-        message: 'Image not found',
-        requestedPath: `/uploads/themes/${filename}`
-      });
-    }
-    
-    // File exists
-    res.json({ 
-      exists: true, 
-      path: `/uploads/themes/${filename}`,
-      fullPath: imagePath
-    });
-  });
+  const filename = path.basename(req.params.filename);
+  const imgPath  = path.join(process.cwd(), 'public', 'uploads', 'themes', filename);
+  fs.access(imgPath, fs.constants.F_OK, (err) =>
+    err
+      ? res.status(404).json({ exists: false })
+      : res.json({ exists: true, path: `/uploads/themes/${filename}` })
+  );
 });
 
-// Test email route (gửi email nhắc lịch)
-router.post('/pet/:id/send-reminder', async (req, res) => {
-  try {
-    const { to, petName, revisitDate } = req.body;
-    
-    // Kiểm tra đầu vào
-    if (!to || !petName || !revisitDate) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Gửi email nhắc lịch
-    await sendReminderEmail(to, petName, revisitDate);
-
-    return res.status(200).json({ message: 'Reminder email sent successfully!' });
-  } catch (error) {
-    console.error('Error sending reminder email:', error);
-    return res.status(500).json({ message: 'Failed to send email', error: error.message });
+/* ===== Email helpers ===== */
+router.post('/pets/:id/send-reminder', wrap(async (req, res) => {
+  const { to, petName, revisitDate } = req.body;
+  if (!to || !petName || !revisitDate) {
+    return res.status(400).json({ message: 'Missing required fields' });
   }
-});
+  await sendReminderEmail(to, petName, revisitDate);
+  res.json({ message: 'Reminder email sent' });
+}));
 
-// Test email configuration
-router.get('/test-email-config', async (req, res) => {
-  try {
-    const isValid = await testEmailConfig();
-    if (isValid) {
-      res.json({ message: 'Email configuration is valid' });
-    } else {
-      res.status(500).json({ message: 'Email configuration is invalid' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Error testing email configuration', error: error.message });
+router.get('/test-email-config', wrap(async (_req, res) => {
+  (await testEmailConfig())
+    ? res.json({ message: 'Email config OK' })
+    : res.status(500).json({ message: 'Email config invalid' });
+}));
+
+router.post('/test-reminder', wrap(async (req, res) => {
+  const { to, petName, appointmentDate, note } = req.body;
+  if (!to || !petName || !appointmentDate) {
+    return res.status(400).json({ message: 'Missing required fields' });
   }
-});
+  const appointmentInfo = note
+    ? `${new Date(appointmentDate).toLocaleDateString('vi-VN')} (Ghi chú: ${note})`
+    : new Date(appointmentDate).toLocaleDateString('vi-VN');
 
-// Test sending a reminder email
-router.post('/test-reminder', async (req, res) => {
-  try {
-    const { to, petName, appointmentDate, note } = req.body;
-    
-    if (!to || !petName || !appointmentDate) {
-      return res.status(400).json({ 
-        message: 'Missing required fields',
-        required: ['to', 'petName', 'appointmentDate']
-      });
-    }
-
-    // Format the appointment info with note if provided
-    const formattedDate = new Date(appointmentDate).toLocaleDateString('vi-VN');
-    const appointmentInfo = note ? `${formattedDate} (Ghi chú: ${note})` : formattedDate;
-
-    const result = await sendReminderEmail(to, petName, appointmentInfo);
-    res.json({ 
-      message: 'Test reminder email sent successfully',
-      messageId: result.messageId
-    });
-  } catch (error) {
-    console.error('Error sending test reminder:', error);
-    res.status(500).json({ 
-      message: 'Failed to send test reminder',
-      error: error.message 
-    });
-  }
-});
+  const result = await sendReminderEmail(to, petName, appointmentInfo);
+  res.json({ message: 'Sent', messageId: result.messageId });
+}));
 
 module.exports = router;

@@ -1,83 +1,81 @@
 const mongoose = require('mongoose');
 
-// Schema cho lịch tiêm chủng
+/* ---------- Sub-documents ---------- */
 const VaccinationSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  date: { type: Date, required: true }
+  name: { type: String, required: true, trim: true },
+  date: { type: Date,  required: true },
 }, { _id: false });
 
-// Schema cho lịch tái khám
 const ReExaminationSchema = new mongoose.Schema({
-  date: { type: Date, required: true },
-  note: { type: String, default: '' },
-  reminderSent: { type: Boolean, default: false } // Track whether a reminder has been sent
+  date         : { type: Date, required: true },
+  note         : { type: String, default: '' },
+  reminderSent : { type: Boolean, default: false },
 }, { _id: false });
 
-// Schema chính cho Pet
+/* ---------- Main ---------- */
 const PetSchema = new mongoose.Schema({
-  qrCodeUrl:     { type: String, required: true },
-  avatarFileId:  { type: mongoose.Schema.Types.ObjectId, default: null },
-  themeId:       { type: mongoose.Schema.Types.ObjectId, ref: 'Theme', default: null },
-  status:        { 
-    type: String, 
-    enum: ['unused', 'active'],
-    default: 'unused'
+  qrCodeUrl    : { type: String, required: true },
+  avatarFileId : { type: mongoose.Schema.Types.ObjectId, default: null },
+  themeId      : { type: mongoose.Schema.Types.ObjectId, ref: 'Theme', default: null },
+
+  status: {
+    type   : String,
+    enum   : ['unused', 'active'],
+    default: 'unused',
   },
+
+  /* NEW: lưu thời gian quét QR gần nhất */
+  lastScannedAt: { type: Date, default: null },
+
   info: {
-    name:      { type: String, default: '' },
-    species:   { type: String, default: '' },
-    birthDate: { type: Date,   default: null },
-    description: { type: String, default: '' }
+    name       : { type: String, default: '' },
+    species    : { type: String, default: '' },
+    birthDate  : { type: Date,   default: null },
+    description: { type: String, default: '' },
   },
+
   owner: {
-    name:  { type: String, default: '' },
+    name : { type: String, default: '' },
     phone: { type: String, default: '' },
-    email: { type: String, default: '', lowercase: true, trim: true }
+    email: { type: String, default: '', lowercase: true, trim: true },
   },
-  allergicInfo: { // Thay đổi từ 'allergicPerson' sang 'allergicInfo'
-    substances: { 
-      type: [String], 
-      default: [], 
+
+  allergicInfo: {
+    substances: {
+      type: [String],
+      default: [],
       validate: [{
-        validator: function(arr) {
-          // Each substance must be a string with only letters and spaces, up to 10 chars
-          return arr.every(s => typeof s === 'string' && /^[\p{L} ]{1,10}$/u.test(s));
+        validator(arr) {
+          return arr.every((s) => typeof s === 'string' && /^[\p{L} ]{1,10}$/u.test(s));
         },
-        message: 'Each allergy name must be up to 10 characters and can only contain letters and spaces.'
-      }]
-    }, // Danh sách các chất gây dị ứng (ví dụ: lông mèo, thức ăn, v.v.)
-    note: { type: String, default: '' } // Ghi chú về dị ứng
+        message: 'Allergy names ≤ 10 ký tự, chỉ chữ + khoảng trắng.',
+      }],
+    },
+    note: { type: String, default: '' },
   },
-  vaccinations: { type: [VaccinationSchema], default: [] },
-  reExaminations: { type: [ReExaminationSchema], default: [] }
+
+  vaccinations   : { type: [VaccinationSchema],   default: [] },
+  reExaminations : { type: [ReExaminationSchema], default: [] },
 }, {
-  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
+  timestamps: true,
 });
 
-// Middleware to automatically update status based on information
-PetSchema.pre('save', function(next) {
-  // If this is a new document, keep status as 'unused'
-  if (this.isNew) {
-    return next();
-  }
+/* ---------- Auto-status ---------
+   “active” khi pet có bất kỳ info/owner
+----------------------------------*/
+function computeStatus(doc) {
+  const hasInfo = doc.info?.name || doc.owner?.name || doc.owner?.phone || doc.owner?.email;
+  doc.status = hasInfo ? 'active' : 'unused';
+}
 
-  // Check if any information has been saved
-  const hasInfo = this.info.name || this.owner.name || this.owner.phone || this.owner.email;
-  
-  // Update status based on whether information exists
-  this.status = hasInfo ? 'active' : 'unused';
+/* save */
+PetSchema.pre('save', function (next) { computeStatus(this); next(); });
 
+/* findOneAndUpdate */
+PetSchema.pre('findOneAndUpdate', function (next) {
+  const update = this.getUpdate();
+  if (update.$set) computeStatus(update.$set);
   next();
 });
 
-// Không cần thiết phải xóa index owner.email nữa, loại bỏ việc drop index
-// PetSchema.index({ 'owner.email': 1 }, { unique: false }); // Nếu bạn muốn có index, thêm lại
-// Pet.collection.dropIndex('owner.email_1').catch(err => {
-//   if (err.code !== 26) { // Ignore error if index doesn't exist
-//     console.error('Error dropping index:', err);
-//   }
-// });
-
-const Pet = mongoose.model('Pet', PetSchema);
-
-module.exports = Pet;
+module.exports = mongoose.model('Pet', PetSchema);
