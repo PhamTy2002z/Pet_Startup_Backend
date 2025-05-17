@@ -1,34 +1,44 @@
+// src/server.js
 require('dotenv').config();
-const path       = require('path');
-const fs         = require('fs');
-const express    = require('express');
-const cors       = require('cors');
-const helmet     = require('helmet');
-const morgan     = require('morgan');
-const rateLimit  = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const mongoose   = require('mongoose');
+const path            = require('path');
+const fs              = require('fs');
+const express         = require('express');
+const cors            = require('cors');
+const helmet          = require('helmet');
+const morgan          = require('morgan');
+const rateLimit       = require('express-rate-limit');
+const cookieParser    = require('cookie-parser');
+const bodyParser      = require('body-parser');
+const mongoose        = require('mongoose');
 
-const commonRoutes = require('./routes/common');
-const authRoutes   = require('./routes/auth');
-const adminRoutes  = require('./routes/admin');
-const userRoutes   = require('./routes/user');
+const commonRoutes    = require('./routes/common');
+const authRoutes      = require('./routes/auth');
+const adminRoutes     = require('./routes/admin');
+const userRoutes      = require('./routes/user');
 const { startReminderJob } = require('./utils/scheduler');
 
 const createApp = () => {
   const app = express();
 
-  /* ---------- 1. Trust proxy (Render, Heroku…) ---------- */
+  /* ---------- 1. Proxy ---------- */
   if (process.env.TRUST_PROXY === 'true') app.set('trust proxy', 1);
 
   /* ---------- 2. Security ---------- */
-  app.use(helmet());
+  app.use(
+    helmet({
+      /**
+       * Chrome chặn ảnh (ERR_BLOCKED_BY_RESPONSE.NotSameOrigin) nếu
+       * `Cross-Origin-Resource-Policy: same-origin`.
+       * Cho phép truy cập cross-origin đối với file tĩnh (ảnh theme / avatar).
+       */
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
   app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
   app.use(
     rateLimit({
-      windowMs: 60 * 1000, // 1 phút
-      max     : 100,       // 100 req/IP/phút
+      windowMs: 60 * 1000,
+      max: 100,
     }),
   );
   app.use(cookieParser());
@@ -55,9 +65,9 @@ const createApp = () => {
   app.use(bodyParser.json({ limit: '2mb' }));
   app.use(bodyParser.urlencoded({ extended: false }));
 
-  /* ---------- 5. MongoDB & GridFS ---------- */
+  /* ---------- 5. MongoDB ---------- */
   mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser   : true,
+    useNewUrlParser: true,
     useUnifiedTopology: true,
   });
   mongoose.connection.once('open', () => {
@@ -69,45 +79,46 @@ const createApp = () => {
   });
 
   /* ---------- 6. Static uploads ---------- */
-  app.use('/uploads', express.static(path.join(__dirname, '..', 'public')));
+  const uploadsPath = path.join(__dirname, '..', 'public', 'uploads');
+  app.use('/uploads', express.static(uploadsPath));
 
-  /* ---------- 7. API routes ---------- */
-  app.use('/api/v1/auth',   authRoutes);
-  app.use('/api/v1/admin',  adminRoutes);
-  app.use('/api/v1',        userRoutes);
-  app.use('/api/v1',        commonRoutes);
+  /* ---------- 7. API ---------- */
+  app.use('/api/v1/auth',  authRoutes);
+  app.use('/api/v1/admin', adminRoutes);
+  app.use('/api/v1',       userRoutes);
+  app.use('/api/v1',       commonRoutes);
 
   /* ---------- 8. Optional React build ---------- */
   const distPath  = path.join(__dirname, '..', 'dist');
   const indexPath = path.join(distPath, 'index.html');
-  const hasFrontend = fs.existsSync(indexPath);
-
-  if (hasFrontend) {
+  if (fs.existsSync(indexPath)) {
     app.use(express.static(distPath));
-    // SPA fallback
     app.get('/*', (_req, res) => res.sendFile(indexPath));
     console.log('[SERVER] Serving React build from /dist');
   } else {
     console.warn('[SERVER] No /dist folder – skipping front-end static serving.');
   }
 
-  /* ---------- 9. Health check ---------- */
+  /* ---------- 9. Health ---------- */
   app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
 
-  /* ---------- 10. Error handler ---------- */
+  /* ---------- 10. Error ---------- */
   // eslint-disable-next-line
   app.use((err, req, res, _next) => {
     console.error(err);
     res.status(err.status || 500).json({
       message: err.message || 'Internal server error',
-      stack  : process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      stack:
+        process.env.NODE_ENV === 'development'
+          ? err.stack
+          : undefined,
     });
   });
 
   return app;
 };
 
-/* ---------- 11. Start server (if run directly) ---------- */
+/* ---------- 11. Start ---------- */
 if (require.main === module) {
   const app  = createApp();
   const PORT = process.env.PORT || 5000;
