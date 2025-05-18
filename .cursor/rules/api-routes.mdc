@@ -1,0 +1,29 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# API Routes
+
+The API follows a RESTful design pattern with the following route groups:
+
+## Authentication Routes
+- [src/routes/auth.js](mdc:src/routes/auth.js) - Admin authentication endpoints
+- [src/controllers/authController.js](mdc:src/controllers/authController.js) - Authentication logic
+
+## Admin Routes
+- [src/routes/admin.js](mdc:src/routes/admin.js) - Admin dashboard endpoints
+- [src/controllers/adminController.js](mdc:src/controllers/adminController.js) - Admin operations
+- [src/middleware/authAdmin.js](mdc:src/middleware/authAdmin.js) - Admin authentication middleware
+
+## User Routes
+- [src/routes/user.js](mdc:src/routes/user.js) - Public user endpoints
+- [src/controllers/userController.js](mdc:src/controllers/userController.js) - User operations
+
+## Store Routes
+- [src/routes/store.js](mdc:src/routes/store.js) - Theme store endpoints
+- [src/controllers/themeController.js](mdc:src/controllers/themeController.js) - Theme operations
+
+## Common Routes
+- [src/routes/common.js](mdc:src/routes/common.js) - Utility endpoints
+- [src/controllers/petImageController.js](mdc:src/controllers/petImageController.js) - Pet image handling

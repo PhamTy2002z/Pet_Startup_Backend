@@ -1,3 +1,4 @@
+//src/models/User.js
 const mongoose = require('mongoose');
 
 const emailRegex = /^[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;

@@ -1,0 +1,28 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Project Overview
+
+This is a Node.js backend for a Pet Startup application. The application provides services for pet management, user authentication, and theme customization.
+
+## Main Entry Points
+- [src/server.js](mdc:src/server.js) - Main server entry point
+- [package.json](mdc:package.json) - Project dependencies and scripts
+
+## Project Structure
+- `src/` - Contains all source code
+  - `routes/` - API route definitions
+  - `controllers/` - Business logic for routes
+  - `models/` - Mongoose models for MongoDB
+  - `middleware/` - Express middleware
+  - `utils/` - Utility functions
+  - `config/` - Configuration files
+- `public/` - Static files
+- `scripts/` - Utility scripts
+
+## Running the Application
+- Development: `npm run dev`
+- Production: `npm start`
+- Create Admin: `npm run seed:admin`

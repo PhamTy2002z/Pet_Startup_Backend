@@ -1,3 +1,4 @@
+//src/routes/admin.js
 const express = require('express');
 const router  = express.Router();
 const wrap    = require('../utils/asyncWrap');

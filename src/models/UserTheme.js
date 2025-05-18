@@ -1,3 +1,4 @@
+//src/models/UserTheme.js
 const mongoose = require('mongoose');
 
 const UserThemeSchema = new mongoose.Schema({

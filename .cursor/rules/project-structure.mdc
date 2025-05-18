@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Structure
+
+## Core Files
+- [src/server.js](mdc:src/server.js) - Main application entry point
+- [package.json](mdc:package.json) - Project dependencies and scripts
+
+## Directory Structure
+- `src/` - Source code directory
+  - `routes/` - API route definitions
+  - `controllers/` - Business logic
+  - `models/` - Database models
+  - `middleware/` - Express middleware
+  - `utils/` - Utility functions
+  - `config/` - Configuration files
+
+## Key Features
+- RESTful API for pet management
+- Admin dashboard for content management
+- Theme customization for pet profiles
+- User authentication and authorization
+- Image upload and management
+- MongoDB database with Mongoose ODM
+
+## Additional Rules
+- [API Routes](mdc:.cursor/rules/api-routes.mdc)
+- [Database Models](mdc:.cursor/rules/database-models.mdc)
+- [Security and Middleware](mdc:.cursor/rules/security-middleware.mdc)
+- [Theme Management](mdc:.cursor/rules/theme-management.mdc)
+
+

@@ -1,7 +1,8 @@
+//src/utils/gridfsStorage.js
 const { GridFsStorage } = require('multer-gridfs-storage');
 require('dotenv').config();
 
-/* Lưu avatar vào bucket “avatars” */
+/* Lưu avatar vào bucket "avatars" */
 module.exports = new GridFsStorage({
   url: process.env.MONGODB_URI,
   options: { useNewUrlParser: true, useUnifiedTopology: true },

@@ -1,0 +1,26 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Database Models
+
+The application uses MongoDB with Mongoose for data modeling. Here are the main models:
+
+## Admin Model
+- [src/models/Admin.js](mdc:src/models/Admin.js) - Admin user model for dashboard access
+
+## User Model
+- [src/models/User.js](mdc:src/models/User.js) - End user model
+
+## Pet Model
+- [src/models/Pet.js](mdc:src/models/Pet.js) - Pet information model with owner relationship
+
+## Theme Model
+- [src/models/Theme.js](mdc:src/models/Theme.js) - Theme customization options
+
+## UserTheme Model
+- [src/models/UserTheme.js](mdc:src/models/UserTheme.js) - Association between users and their selected themes
+
+## Database Connection
+The MongoDB connection is established in [src/server.js](mdc:src/server.js) using the MONGODB_URI environment variable.
