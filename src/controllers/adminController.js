@@ -2,17 +2,22 @@ const mongoose  = require('mongoose');
 const Pet       = require('../models/Pet');
 const { generateQRCode } = require('../utils/qr');
 const { getBaseUrl }    = require('../utils/url');
+const crypto = require('crypto');
 
 /* ---------- Helpers ---------- */
 const buildPetEditUrl = (petId) => `${getBaseUrl()}/user/edit/${petId}`;
+
+// Generate unique token for QR 
+const generateUniqueToken = () => crypto.randomBytes(16).toString('hex');
 
 /* ---------- Create one ---------- */
 exports.createPet = async (req, res) => {
   // 1. tạo ID trước
   const _id = new mongoose.Types.ObjectId();
+  const qrToken = generateUniqueToken();
   const qr  = await generateQRCode(buildPetEditUrl(_id));
   // 2. save 1 lần
-  const pet = await Pet.create({ _id, qrCodeUrl: qr });
+  const pet = await Pet.create({ _id, qrCodeUrl: qr, qrToken });
   return res.status(201).json(pet);
 };
 
@@ -25,8 +30,9 @@ exports.createBulkPets = async (req, res) => {
   const pets = await Promise.all(
     Array.from({ length: qty }).map(async () => {
       const _id = new mongoose.Types.ObjectId();
+      const qrToken = generateUniqueToken();
       const qr  = await generateQRCode(buildPetEditUrl(_id));
-      return { _id, qrCodeUrl: qr };
+      return { _id, qrCodeUrl: qr, qrToken };
     }),
   );
   const inserted = await Pet.insertMany(pets);

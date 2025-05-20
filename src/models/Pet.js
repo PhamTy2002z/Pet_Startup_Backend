@@ -15,6 +15,7 @@ const ReExaminationSchema = new mongoose.Schema({
 /* ---------- Main ---------- */
 const PetSchema = new mongoose.Schema({
   qrCodeUrl    : { type: String, required: true },
+  qrToken      : { type: String, unique: true, sparse: true },
   avatarFileId : { type: mongoose.Schema.Types.ObjectId, default: null },
   themeId      : { type: mongoose.Schema.Types.ObjectId, ref: 'Theme', default: null },
 
@@ -61,7 +62,7 @@ const PetSchema = new mongoose.Schema({
 });
 
 /* ---------- Auto-status ---------
-   “active” khi pet có bất kỳ info/owner
+   "active" khi pet có bất kỳ info/owner
 ----------------------------------*/
 function computeStatus(doc) {
   const hasInfo = doc.info?.name || doc.owner?.name || doc.owner?.phone || doc.owner?.email;
