@@ -1,7 +1,4 @@
-//src/controllers/userController.js
-const mongoose = require('mongoose');
-const Pet      = require('../models/Pet');
-const { recordQRScan } = require('./adminController');
+const Pet = require('../models/Pet');
 
 /* ---------- Get ---------- */
 exports.getPetById = async (req, res) => {

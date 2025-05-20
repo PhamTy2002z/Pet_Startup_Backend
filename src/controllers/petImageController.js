@@ -1,4 +1,3 @@
-//src/controllers/petImageController.js
 const mongoose = require('mongoose');
 const multer   = require('multer');
 const Pet      = require('../models/Pet');

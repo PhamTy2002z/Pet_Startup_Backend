@@ -1,4 +1,3 @@
-//src/models/Pet.js
 const mongoose = require('mongoose');
 
 /* ---------- Sub-documents ---------- */
@@ -62,7 +61,7 @@ const PetSchema = new mongoose.Schema({
 });
 
 /* ---------- Auto-status ---------
-   "active" khi pet có bất kỳ info/owner
+   “active” khi pet có bất kỳ info/owner
 ----------------------------------*/
 function computeStatus(doc) {
   const hasInfo = doc.info?.name || doc.owner?.name || doc.owner?.phone || doc.owner?.email;

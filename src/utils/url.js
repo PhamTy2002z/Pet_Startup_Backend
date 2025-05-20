@@ -1,4 +1,3 @@
-//src/utils/url.js
 /* Lấy base URL chuẩn có https:// và bỏ dấu / cuối */
 module.exports.getBaseUrl = () => {
     const raw = process.env.BASE_URL;

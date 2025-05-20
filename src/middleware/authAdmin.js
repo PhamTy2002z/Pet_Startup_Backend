@@ -1,4 +1,3 @@
-//src/middleware/authAdmin.js
 // Authorization: Bearer <JWT>
 const jwt = require('jsonwebtoken');
 

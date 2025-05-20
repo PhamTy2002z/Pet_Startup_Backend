@@ -1,4 +1,3 @@
-//src/utils/qr.js
 const QRCode = require('qrcode');
 
 /* Sinh QR dạng data-URI (PNG base64) */

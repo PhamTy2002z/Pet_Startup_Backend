@@ -1,4 +1,3 @@
-//src/utils/scheduler.js
 const cron                = require('node-cron');
 const { sendReminderEmail } = require('./mail');
 const Pet                 = require('../models/Pet');

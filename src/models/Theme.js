@@ -1,4 +1,3 @@
-//src/models/Theme.js
 const mongoose = require('mongoose');
 
 const ThemeSchema = new mongoose.Schema({

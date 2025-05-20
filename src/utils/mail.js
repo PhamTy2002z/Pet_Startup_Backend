@@ -1,4 +1,3 @@
-//src/utils/mail.js
 const nodemailer = require('nodemailer');
 
 /* ---------- Transporter ---------- */

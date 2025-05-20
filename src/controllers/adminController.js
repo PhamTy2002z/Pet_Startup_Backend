@@ -1,4 +1,3 @@
-//src/controllers/adminController.js
 const mongoose  = require('mongoose');
 const Pet       = require('../models/Pet');
 const { generateQRCode } = require('../utils/qr');
