@@ -1,3 +1,4 @@
+//src/controllers/themeRedemptionController.js
 const ThemeRedemptionCode = require('../models/ThemeRedemptionCode');
 const Theme = require('../models/Theme');
 const Pet = require('../models/Pet');

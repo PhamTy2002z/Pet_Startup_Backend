@@ -1,3 +1,4 @@
+//src/controllers/themeStoreAuthController.js
 const jwt = require('jsonwebtoken');
 const ThemeStoreUser = require('../models/ThemeStoreUser');
 
