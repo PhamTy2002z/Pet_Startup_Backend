@@ -20,6 +20,12 @@ const {
   applyPurchasedTheme,
 } = require('../controllers/themeController');
 
+const {
+  redeemCode,
+  validateCode,
+  getRedemptionHistory
+} = require('../controllers/themeRedemptionController');
+
 const { uploadAvatar }   = require('../controllers/petImageController');
 const { sendReminderEmail, testEmailConfig } = require('../utils/mail');
 
@@ -54,6 +60,11 @@ router.get ('/purchased-themes/:petId', wrap(getPurchasedThemes));
 router.post('/purchase-theme',        wrap(purchaseTheme));
 router.post('/apply-theme',           wrap(applyPurchasedTheme));
 
+/* ===== Theme Redemption Code Endpoints ===== */
+router.post('/redeem-theme-code', wrap(redeemCode));
+router.get('/validate-theme-code/:code', wrap(validateCode));
+router.get('/theme-redemption-history/:petId', wrap(getRedemptionHistory));
+
 /* ===== Asset check (debug) ===== */
 router.get('/theme-image-check/:filename', (req, res) => {
   const filename = path.basename(req.params.filename);
@@ -69,7 +80,7 @@ router.get('/theme-image-check/:filename', (req, res) => {
 router.post('/pets/:id/send-reminder', wrap(async (req, res) => {
   const { to, petName, revisitDate } = req.body;
   if (!to || !petName || !revisitDate) {
-    return res.status(400).json({ message: 'Missing required fields' });
+    return res.status(400).json({ error: 'Missing required fields' });
   }
   await sendReminderEmail(to, petName, revisitDate);
   res.json({ message: 'Reminder email sent' });
@@ -84,7 +95,7 @@ router.get('/test-email-config', wrap(async (_req, res) => {
 router.post('/test-reminder', wrap(async (req, res) => {
   const { to, petName, appointmentDate, note } = req.body;
   if (!to || !petName || !appointmentDate) {
-    return res.status(400).json({ message: 'Missing required fields' });
+    return res.status(400).json({ error: 'Missing required fields' });
   }
   const appointmentInfo = note
     ? `${new Date(appointmentDate).toLocaleDateString('vi-VN')} (Ghi chú: ${note})`

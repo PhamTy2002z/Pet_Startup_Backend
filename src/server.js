@@ -19,6 +19,7 @@ const authRoutes   = require('./routes/auth');
 const adminRoutes  = require('./routes/admin');
 const userRoutes   = require('./routes/user');
 const storeRoutes  = require('./routes/store');          //  <-- thêm
+const themeStoreRoutes = require('./routes/themeStore'); // <-- new theme store routes
 const { startReminderJob } = require('./utils/scheduler');
 
 /* ========================================================================== */
@@ -92,6 +93,7 @@ const createApp = () => {
   app.use('/api/v1/auth',   authRoutes);      // đăng nhập admin
   app.use('/api/v1/admin',  adminRoutes);     // dashboard – cần token
   app.use('/api/v1/store',  storeRoutes);     // cửa hàng theme – public
+  app.use('/api/v1/theme-store', themeStoreRoutes); // new theme store route
   app.use('/api/v1',        userRoutes);      // người quét QR – public
   app.use('/api/v1',        commonRoutes);    // tiện ích chung
 
