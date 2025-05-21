@@ -6,6 +6,7 @@ const UserTheme          = require('../models/UserTheme');
 const ThemeRedemptionCode = require('../models/ThemeRedemptionCode');
 const { register, login, getCurrentUser } = require('../controllers/themeStoreAuthController');
 const { requireThemeStoreAuth } = require('../middleware/themeStoreAuth');
+const { getUserPurchaseHistory } = require('../controllers/themeController');
 
 /* ---------- Auth ---------- */
 router.post('/auth/register', register);
@@ -98,6 +99,13 @@ router.get('/purchases', requireThemeStoreAuth, async (req, res, next) => {
 
     res.json(result);
   } catch (err) { next(err); }
+});
+
+/* ---------- Purchase History ---------- */
+router.get('/purchase-history/:userId', requireThemeStoreAuth, getUserPurchaseHistory);
+router.get('/my-purchase-history', requireThemeStoreAuth, (req, res) => {
+  req.params.userId = req.user.id;
+  getUserPurchaseHistory(req, res);
 });
 
 /* ---------- Generate extra code ---------- */

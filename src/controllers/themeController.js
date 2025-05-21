@@ -256,3 +256,86 @@ exports.getActiveThemes = async (req, res) => {
 
   res.json(uniq);
 };
+
+exports.getUserPurchaseHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { 
+      page = 1, 
+      limit = 10, 
+      startDate, 
+      endDate, 
+      status 
+    } = req.query;
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    // Security check: Users can only access their own purchase history
+    if (userId !== req.user.id) {
+      return res.status(403).json({ error: 'Unauthorized access to purchase history' });
+    }
+
+    // Build query filters
+    const filters = { themeStoreUserId: userId };
+    
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filters.purchaseDate = {};
+      if (startDate) filters.purchaseDate.$gte = new Date(startDate);
+      if (endDate) filters.purchaseDate.$lte = new Date(endDate);
+    }
+    
+    // Add transaction status filter if provided
+    if (status) {
+      filters['transactionDetails.status'] = status;
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Get total count for pagination info
+    const total = await UserTheme.countDocuments(filters);
+
+    // Get paginated results
+    const purchases = await UserTheme.find(filters)
+      .populate('themeId', 'name imageUrl description price isPremium presetKey')
+      .sort({ purchaseDate: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const purchaseHistory = purchases.map(purchase => {
+      return {
+        id: purchase._id,
+        purchaseDate: purchase.purchaseDate,
+        theme: purchase.themeId ? {
+          id: purchase.themeId._id,
+          name: purchase.themeId.name,
+          presetKey: purchase.themeId.presetKey,
+          imageUrl: purchase.themeId.imageUrl,
+          price: purchase.themeId.price,
+          isPremium: purchase.themeId.isPremium,
+          description: purchase.themeId.description
+        } : null,
+        transactionDetails: {
+          transactionId: purchase.transactionDetails.transactionId,
+          amount: purchase.transactionDetails.amount,
+          status: purchase.transactionDetails.status
+        }
+      };
+    });
+
+    res.json({
+      results: purchaseHistory,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
